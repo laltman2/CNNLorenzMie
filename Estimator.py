@@ -116,7 +116,7 @@ class Estimator(object):
         self._model = loaded
         return self
 
-    def predict(self, img_names_path='', img_list=[], save_to_json=False, predictions_path='predictions.json'):
+    def predict(self, img_names_path=None, img_list=[], save_to_json=False, predictions_path='predictions.json'):
         crop_img = img_list
         if not img_names_path is None:
             with open(img_names_path, 'r') as f:

@@ -101,6 +101,7 @@ class Localizer(object):
         '''
         
         predictions = []
+        #img_files = []
         config_path = self._config_path
         weight_path = self._weight_path
         meta_path = self._meta_path
@@ -108,6 +109,7 @@ class Localizer(object):
             lines = f.readlines()
         for line in lines:
             filename = line.rstrip()
+            #img_files.append(filename)
             yolopred = performDetect(imagePath=filename, configPath = config_path, weightPath = weight_path, metaPath= meta_path, showImage= False)
             imagepreds = []
             for pred in yolopred:
@@ -128,7 +130,7 @@ if __name__=='__main__':
     meta_path = darknet_filehead + 'cfg/holo.data'
     img_files = '/home/group/example_data/movie_img/filenames.txt'
     localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
-    detections = localizer.predict(img_names_path = img_files, save_to_json = False)
+    detections = localizer.predict(img_names_path = img_files, save_to_json = True)
     example = detections[0]
     print('Image 1:')
     for holo in example:

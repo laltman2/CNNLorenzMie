@@ -65,10 +65,20 @@ def crop(img_list=[], img_names_path=None,
                 ax.text(x+10, y-10, '{}%'.format(round(conf)), bbox=dict(facecolor='white', alpha=0.5))
             xc = int(x)
             yc = int(y)
-            xbot = xc - 100
-            xtop = xc + 100
-            ybot = yc - 100
-            ytop = yc + 100
+            if crop_img_rows % 2 == 0:
+                right_frame = left_frame = int(crop_img_rows/2)
+            else:
+                left_frame = int(np.floor(crop_img_rows/2))
+                right_frame = int(np.ceil(crop_img_rows/2))
+            xbot = xc - left_frame
+            xtop = xc + right_frame
+            if crop_img_cols % 2 == 0:
+                top_frame = bot_frame = int(crop_img_cols/2)
+            else:
+                top_frame = int(np.floor(crop_img_cols/2))
+                bot_frame = int(np.ceil(crop_img_cols/2))
+            ybot = yc - bot_frame
+            ytop = yc + top_frame
             cropped = img_local[ybot:ytop, xbot:xtop]
             crop_img.append(cropped[:,:,0])
             x_pred.append(x)
