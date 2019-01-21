@@ -152,6 +152,9 @@ if __name__ == '__main__':
     e2e = EndtoEnd(estimator=estimator, localizer=localizer)
     features = e2e.predict(img_names_path = img_files)
     example = features[1]
+    example.model.instrument.wavelength = 0.447
+    example.model.instrument.magnification = 0.048
+    example.model.instrument.n_m = 1.340
     result = example.optimize()
     report_fit(result)
     h = example.model.hologram()
