@@ -21,7 +21,6 @@ def crop(img_list=[], img_names_path=None,
     list of images
     '''
 
-    crop_dir = os.path.abspath(crop_dir)
     (img_rows, img_cols) = old_pixels
     (crop_img_rows, crop_img_cols) = new_pixels
     if not img_names_path is None:
@@ -86,7 +85,9 @@ def crop(img_list=[], img_names_path=None,
         if showImage:
             plt.show()
 
+    img_files = []
     if save_to_folder:
+        crop_dir = os.path.abspath(crop_dir)
         if not os.path.exists(crop_dir):
             os.makedirs(crop_dir)
         numcrops = len(crop_img)
@@ -94,10 +95,13 @@ def crop(img_list=[], img_names_path=None,
         for num in range(numcrops):
             local_img_save = Image.fromarray(crop_img[num])
             local_img_path = crop_dir+'/image'+str(num+1).zfill(4)+'.png'
+            img_files.append(local_img_path)
             local_img_save.save(local_img_path, 'png')
             filenames_save += local_img_path+'\n'
         with open(crop_dir+'/filenames.txt', 'w') as f:
             f.write(filenames_save)
+
+    return crop_img
 
 if __name__=='__main__':
     img_files = '/home/group/example_data/movie_img/filenames.txt'

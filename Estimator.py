@@ -6,8 +6,10 @@ from PIL import Image
 from keras import backend as K
 sys.path.append('/home/group/lauren_yolo/')
 from pylorenzmie.theory.Instrument import Instrument
+import tensorflow as tf
 
-def format_image(img):
+def format_image(img, crop_px):
+    (crop_img_rows, crop_img_cols) = crop_px
     if K.image_data_format() == 'channels_first':
         img = img.reshape(img.shape[0], 1, crop_img_rows, crop_img_cols)
         input_shape = (1, crop_img_rows, crop_img_cols)
@@ -74,6 +76,21 @@ class Estimator(object):
         model_path: str
             path to model.h5 file
         '''
+        
+        ###################################
+        # TensorFlow wizardry
+        config = tf.ConfigProto()
+        
+        # Don't pre-allocate memory; allocate as-needed
+        config.gpu_options.allow_growth = True
+ 
+        # Only allow a total of half the GPU memory to be allocated
+        config.gpu_options.per_process_gpu_memory_fraction = 0.5
+ 
+        # Create a session with the above options specified.
+        K.tensorflow_backend.set_session(tf.Session(config=config))
+        ###################################
+
         self.pixels = pixels
         if instrument is None:
             self.instrument = Instrument()
@@ -85,6 +102,7 @@ class Estimator(object):
             loaded = keras.models.load_model(model_path)
             loaded.summary()
             self.model= loaded
+
 
     @property
     def pixels(self):
@@ -126,7 +144,7 @@ class Estimator(object):
                 img_local = np.array(Image.open(filename))
                 crop_img.append(img_local)
         crop_img = np.array(crop_img)
-        crop_img = format_image(crop_img)
+        crop_img = format_image(crop_img, self.pixels)
         crop_img = crop_img/255
 
         stamp_model = self.model

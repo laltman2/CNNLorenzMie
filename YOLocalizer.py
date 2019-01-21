@@ -86,7 +86,8 @@ class Localizer(object):
     def weight_path(self, weight_path):
         self._weight_path = weight_path
 
-    def predict(self, img_names_path='', save_to_json=False, predictions_path='yolo_predictions.json'):
+    def predict(self,  img_names_path=None,
+                save_to_json=False, predictions_path='yolo_predictions.json'):
         '''
         input:
         img_names_path: path to filenames.txt 
