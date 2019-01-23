@@ -62,8 +62,8 @@ def crop(img_list=[], img_names_path=None,
             if showImage:
                 ax.plot([x], [y], 'ro')
                 ax.text(x+10, y-10, '{}%'.format(round(conf)), bbox=dict(facecolor='white', alpha=0.5))
-            xc = int(x)-1
-            yc = int(y)+1
+            xc = int(np.round(x))-1
+            yc = int(np.round(y))+1
             if crop_img_rows % 2 == 0:
                 right_frame = left_frame = int(crop_img_rows/2)
             else:
