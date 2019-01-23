@@ -62,8 +62,8 @@ def crop(img_list=[], img_names_path=None,
             if showImage:
                 ax.plot([x], [y], 'ro')
                 ax.text(x+10, y-10, '{}%'.format(round(conf)), bbox=dict(facecolor='white', alpha=0.5))
-            xc = int(x)
-            yc = int(y)
+            xc = int(x)-1
+            yc = int(y)+1
             if crop_img_rows % 2 == 0:
                 right_frame = left_frame = int(crop_img_rows/2)
             else:
@@ -74,8 +74,8 @@ def crop(img_list=[], img_names_path=None,
             if crop_img_cols % 2 == 0:
                 top_frame = bot_frame = int(crop_img_cols/2)
             else:
-                top_frame = int(np.floor(crop_img_cols/2))
-                bot_frame = int(np.ceil(crop_img_cols/2))
+                top_frame = int(np.ceil(crop_img_cols/2))
+                bot_frame = int(np.floor(crop_img_cols/2))
             ybot = yc - bot_frame
             ytop = yc + top_frame
             cropped = img_local[ybot:ytop, xbot:xtop]
