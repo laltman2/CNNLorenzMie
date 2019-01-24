@@ -62,7 +62,6 @@ class Estimator(object):
     '''
     
     def __init__(self,
-                 pixels=(201,201),
                  model_path=None,
                  instrument=None):
 
@@ -91,17 +90,20 @@ class Estimator(object):
         K.tensorflow_backend.set_session(tf.Session(config=config))
         ###################################
 
-        self.pixels = pixels
         if instrument is None:
             self.instrument = Instrument()
         else:
             self.instrument = instrument
         if model_path is None:
-            self.model=keras.models.Model()
+            self.model=keras.models.Sequential()
+            pix = (None, None)
         else:
             loaded = keras.models.load_model(model_path)
             loaded.summary()
             self.model= loaded
+            (a,b,c,d) = loaded.input_shape
+            pix = (b,c)
+        self.pixels = pix
 
 
     @property
@@ -175,7 +177,7 @@ if __name__ == '__main__':
     crop_img_rows, crop_img_cols = 200, 200
     pix = (crop_img_rows, crop_img_cols)
     
-    estimator = Estimator(pixels=pix, model_path=keras_model_path)
+    estimator = Estimator(model_path=keras_model_path)
     data = estimator.predict(img_names_path = img_filepath)
     example_z = round(data['z_p'][0],1)
     example_a = round(data['a_p'][0],3)
