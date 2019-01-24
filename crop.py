@@ -7,7 +7,7 @@ from PIL import Image
 
 def crop(img_list=[], img_names_path=None,
          xy_preds=[], xy_preds_json=None,
-         new_pixels=(201,201),
+         old_pixels = (1280,1024), new_pixels=(201,201),
          showImage=False, verbose=False,
          save_to_folder=False, crop_dir='./cropped_img/'):
 
@@ -20,7 +20,7 @@ def crop(img_list=[], img_names_path=None,
     output:
     list of images
     '''
-
+    (img_rows, img_cols) = old_pixels
     (crop_img_rows, crop_img_cols) = new_pixels
     if not img_names_path is None:
         with open(img_names_path, 'r') as f:
@@ -77,6 +77,18 @@ def crop(img_list=[], img_names_path=None,
                 bot_frame = int(np.floor(crop_img_cols/2))
             ybot = yc - bot_frame
             ytop = yc + top_frame
+            if xbot<0:
+                xbot = 0
+                xtop = crop_img_rows
+            if ybot<0:
+                ybot = 0
+                ytop = crop_img_cols
+            if xtop>img_rows:
+                xtop = img_rows
+                xbot = img_rows - crop_img_rows
+            if ytop>img_cols:
+                ytop = img_cols
+                ybot = img_cols - crop_img_cols
             cropped = img_local[ybot:ytop, xbot:xtop]
             crop_img.append(cropped[:,:,0])
             x_pred.append(x)
@@ -103,6 +115,13 @@ def crop(img_list=[], img_names_path=None,
     return crop_img
 
 if __name__=='__main__':
-    img_files = '/home/group/example_data/movie_img/filenames.txt'
-    preds_file = './yolo_predictions.json'
-    crop(img_names_path=img_files, xy_preds_json=preds_file, save_to_folder=False, showImage=True)
+    #img_files = '/home/group/example_data/movie_img/filenames.txt'
+    preds_file = './tpm_YOLO.json'
+    img_files = '/home/group/tpm_images/filename.txt'
+    #preds_file = './yolo_predictions.json'
+    shape = (1280, 1024)
+    img_list = crop(img_names_path=img_files, xy_preds_json=preds_file, save_to_folder=False, showImage=False)
+    print(np.array(img_list).shape)
+    for img in img_list:
+        plt.imshow(img, cmap='gray')
+        plt.show()
