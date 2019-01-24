@@ -37,7 +37,6 @@ class EndtoEnd(object):
     '''
     
     def __init__(self,
-                 pixels=(1024,1280),
                  localizer=None,
                  estimator=None):
 
@@ -51,7 +50,6 @@ class EndtoEnd(object):
         model_path: str
             path to model.h5 file
         '''
-        self.pixels = pixels
         if estimator is None:
             self.estimator = Estimator()
         else:
@@ -60,16 +58,18 @@ class EndtoEnd(object):
             self.localizer = Localizer()
         else:
             self.localizer = localizer
-        #if estimator.instrument != localizer.instrument:
-        #    warnings.warn("Warning: estimator and localizer have different instruments")
+        self.coordinates = localizer.coordinates
+        if estimator.instrument != localizer.instrument:
+            warnings.warn("Warning: estimator and localizer have different instruments")
+        self.instrument = estimator.instrument
 
     @property
-    def pixels(self):
-        return self._pixels
+    def coordinates(self):
+        return self._coordinates
 
-    @pixels.setter
-    def pixels(self, pixels):
-        self._pixels = pixels
+    @coordinates.setter
+    def coordinates(self, coordinates):
+        self._coordinates = coordinates
     
     @property
     def instrument(self):
@@ -109,13 +109,14 @@ class EndtoEnd(object):
         (a,b,c,d) = self.estimator.model.input_shape
         crop_px = (b,c)
         yolo_predictions = self.localizer.predict(img_names_path = img_names_path, save_to_json=False)
-        crop_img = crop(img_names_path = img_names_path, xy_preds = yolo_predictions, old_pixels = self.pixels, new_pixels = crop_px, save_to_folder = save_crops, crop_dir = crop_dir)
+        crop_img = crop(img_names_path = img_names_path, xy_preds = yolo_predictions, new_pixels = crop_px, save_to_folder = save_crops, crop_dir = crop_dir)
         char_predictions = self.estimator.predict(img_list = crop_img, save_to_json=False)
         out_features = []
         for num in range(len(crop_img)):
             f = Feature()
             shape = crop_px
             f.model.coordinates = coordinates(shape)
+            f.model.instrument = self.instrument
             data = np.array(crop_img[num])/100
             data = np.array([item for sublist in data for item in sublist])
             f.data = data
@@ -131,30 +132,42 @@ class EndtoEnd(object):
             
 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
+    from pylorenzmie.theory.Instrument import coordinates
+    
+    #keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_final_800.h5'
     keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_pylm_800.h5'
-    cropdir = '/home/group/endtoend/cropped_img/'
-    img_filepath = cropdir+'filenames.txt'
+    #cropdir = '/home/group/endtoend/cropped_img/'
     #predictions_json = '/home/group/endtoend/ML_predictions.json'       
-    crop_img_rows, crop_img_cols = 200, 200
-    pix = (crop_img_rows, crop_img_cols)
-    estimator = Estimator(pixels=pix, model_path=keras_model_path)
+    estimator = Estimator(model_path=keras_model_path)
 
     
-    darknet_filehead = '/home/group/lauren_yolo/darknet/'
-    config_path = darknet_filehead + 'cfg/holo.cfg'
-    weight_path = darknet_filehead + 'backup/holo_55000.weights'
-    meta_path = darknet_filehead + 'cfg/holo.data'
-    img_files = '/home/group/example_data/movie_img/filenames.txt'
-    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
+    darknet_filehead = '/home/group/lauren_yolo/darknet'
+    config_path = darknet_filehead + '/cfg/holo.cfg'
+    weight_path = darknet_filehead + '/backup/holo_55000.weights'
+    meta_path = darknet_filehead + '/cfg/holo.data'
+    shape = (1024,1280)
+    coords = coordinates(shape)
+    localizer = Localizer(coordinates = coords, config_path = config_path, weight_path = weight_path, meta_path = meta_path)
 
-    
+
     e2e = EndtoEnd(estimator=estimator, localizer=localizer)
+    img_files = '/home/group/example_data/movie_img/filenames.txt'
     features = e2e.predict(img_names_path = img_files)
-    example = features[1]
+    example = features[3]
     example.model.instrument.wavelength = 0.447
     example.model.instrument.magnification = 0.048
     example.model.instrument.n_m = 1.340
+
+    '''
+    h = example.model.hologram()
+    fig, (ax1, ax2) = plt.subplots(1,2)
+    ax1.imshow(example.data.reshape(pix), cmap='gray')
+    ax2.imshow(h.reshape(pix), cmap='gray')
+    fig.suptitle('Data, Predicted Hologram')
+    plt.show()
+    '''
+    pix = (200,200)
     result = example.optimize()
     report_fit(result)
     h = example.model.hologram()
