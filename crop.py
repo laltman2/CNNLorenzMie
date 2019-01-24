@@ -7,7 +7,7 @@ from PIL import Image
 
 def crop(img_list=[], img_names_path=None,
          xy_preds=[], xy_preds_json=None,
-         old_pixels=(1024,1280), new_pixels=(200,200),    #not sure i need old_pixels, coords might be more useful for masking etc
+         new_pixels=(201,201),
          showImage=False, verbose=False,
          save_to_folder=False, crop_dir='./cropped_img/'):
 
@@ -21,7 +21,6 @@ def crop(img_list=[], img_names_path=None,
     list of images
     '''
 
-    (img_rows, img_cols) = old_pixels
     (crop_img_rows, crop_img_cols) = new_pixels
     if not img_names_path is None:
         with open(img_names_path, 'r') as f:

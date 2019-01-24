@@ -2,18 +2,18 @@ import numpy as np
 import re, os, json
 import sys, shutil
 
+sys.path.append('/home/group/lauren_yolo')
 ##Put your darknet path here##
-darknet_filehead = '/home/group/lauren_yolo/darknet/'
+darknet_filehead = os.path.abspath('/home/group/lauren_yolo/darknet')
 
-sys.path.append(darknet_filehead)
-pydn_path = darknet_filehead+'pydarknet.py'
+pydn_path = darknet_filehead+'/pydarknet.py'
 if not os.path.exists(pydn_path): #conflict between darknet.py and darknet.c
-    dn_path = darknet_filehead+'darknet.py'
+    dn_path = darknet_filehead+'/darknet.py'
     shutil.copyfile(dn_path, pydn_path)
+sys.path.append(darknet_filehead)
 from pydarknet import performDetect
 
-sys.path.append('/home/group/lauren_yolo/')
-from pylorenzmie.theory.Instrument import Instrument
+from pylorenzmie.theory.Instrument import Instrument, coordinates
 
 class Localizer(object):
     '''
@@ -22,8 +22,7 @@ class Localizer(object):
     config_path: str
     meta_path: str
     weight_path: str
-    pixels: tuple
-        (img_rows, img_cols)
+    coordinates: [3,npx] array
     instrument: Instrument
         Object resprenting the light-scattering instrument                                                                                                                         
     Methods
@@ -34,9 +33,9 @@ class Localizer(object):
                  config_path='',
                  meta_path='',
                  weight_path='',
-                 pixels=(1024,1280),
+                 coordinates=None,
                  instrument=None):
-        self.pixels = pixels
+        self.coordinates = coordinates
         self.config_path = config_path
         self.meta_path = meta_path
         self.weight_path = weight_path
@@ -45,6 +44,31 @@ class Localizer(object):
         else:
             self.instrument = instrument
         performDetect(configPath = config_path, weightPath = weight_path, metaPath= meta_path, showImage= False, initOnly=True)
+
+    @property
+    def coordinates(self):
+        '''Three-dimensional coordinates at which field is calculated'''
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, coordinates):
+        self._coordinates = coordinates
+        '''
+        try:
+            shape = coordinates.shape
+        except AttributeError:
+            self._coordinates = None
+            return
+        if coordinates.ndim == 1:
+            self._coordinates = np.zeros((3, shape[0]))
+            self._coordinates[0, :] = coordinates
+        elif shape[0] == 2:
+            self._coordinates = np.zeros((3, shape[1]))
+            self._coordinates[[0, 1], :] = coordinates
+        else:
+            self._coordinates = coordinates
+        self._allocate(self._coordinates.shape)
+        '''
 
     @property
     def pixels(self):
@@ -126,11 +150,14 @@ class Localizer(object):
         return predictions
 
 if __name__=='__main__':
-    config_path = darknet_filehead + 'cfg/holo.cfg'
-    weight_path = darknet_filehead + 'backup/holo_55000.weights'
-    meta_path = darknet_filehead + 'cfg/holo.data'
+    darknet_filehead = '/home/group/lauren_yolo/darknet'
+    config_path = darknet_filehead + '/cfg/holo.cfg'
+    weight_path = darknet_filehead + '/backup/holo_55000.weights'
+    meta_path = darknet_filehead + '/cfg/holo.data'
+    shape = (1024,1280)
+    coordinates = coordinates(shape)
     img_files = '/home/group/example_data/movie_img/filenames.txt'
-    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
+    localizer = Localizer(coordinates = coordinates, config_path = config_path, weight_path = weight_path, meta_path = meta_path)
     detections = localizer.predict(img_names_path = img_files, save_to_json = True)
     example = detections[0]
     print('Image 1:')
