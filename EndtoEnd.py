@@ -114,39 +114,25 @@ class EndtoEnd(object):
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
         out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
-        for frame in out_features:
-            imlist = []
-            for feat in frame:
-                imlist.append(feat.data*100)
-                feat.instrument = self.instrument
-            char_pred = self.estimator.predict(img_list = imlist, save_to_json=False)
-            for num in range(len(frame)):
-                feat = frame[num]
-                z = char_pred['z_p'][num]
-                a = char_pred['a_p'][num]
-                n = char_pred['n_p'][num]
-                feat.model.particle.z_p = z
-                feat.model.particle.a_p = a
-                feat.model.particle.n_p = n
-                feat.model.coordinates = feat.coordinates
-                
-        '''
-        List flattening not working right now (maybe not possible?)
-        outshape = crop_features.shape
-        unraveled = np.ravel(crop_features)
-        char_predictions = self.estimator.predict(img_list = unraveled, save_to_json=False)
-        for num in range(len(unraveled)):
-            f = unraveled[num]
-            f.model.instrument = self.instrument
-            p = f.model.particle
-            z = char_predictions['z_p'][num]
-            a = char_predictions['a_p'][num]
-            n = char_predictions['n_p'][num]
-            p.z_p = z
-            p.a_p = a
-            p.n_p = n
-        out_features = unraveled.reshape(outshape)
-        '''
+        structure = list(map(len, out_features))
+        flat_features = [item for sublist in out_features for item in sublist]
+        imlist = [feat.data*100 for feat in flat_features]
+        char_predictions = self.estimator.predict(img_list = imlist, save_to_json=False)
+        zpop = char_predictions['z_p']
+        apop = char_predictions['a_p']
+        npop = char_predictions['n_p']
+        for framenum in range(len(structure)):
+            listlen = structure[framenum]
+            frame = out_features[framenum]
+            index = 0
+            while listlen>index:
+                feature = frame[index]
+                feature.model.particle.z_p = zpop.pop(0)
+                feature.model.particle.a_p = apop.pop(0)
+                feature.model.particle.n_p = npop.pop(0)
+                feature.model.coordinates = feature.coordinates
+                feature.instrument = self.instrument
+                index+=1
         return out_features
             
 
@@ -175,8 +161,8 @@ if __name__ == '__main__':
     e2e = EndtoEnd(estimator=estimator, localizer=localizer)
     img_files = '/home/group/example_data/movie_img/filenames.txt'
     features = e2e.predict(img_names_path = img_files)
-    example = features[0][1]
-    '''
+    example = features[3][1]
+
     p = example.model.particle
     print('Particle Params:',p.r_p, p.a_p, p.n_p)
     ins = example.instrument
@@ -185,7 +171,7 @@ if __name__ == '__main__':
     print(coords)
     print(example.model.particle, example.model.coordinates)
     print(example.model.field())
-    '''
+
 
     pix = (200,200)
     
