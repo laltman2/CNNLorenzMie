@@ -36,8 +36,8 @@ def crop_feature(img_list=[], xy_preds=[],
             f = Feature()
             conf = pred["conf"]*100
             (x,y,w,h) = pred["bbox"]
-            xc = int(np.round(x))-1
-            yc = int(np.round(y))+1
+            xc = int(np.round(x))
+            yc = int(np.round(y))
             if crop_img_rows % 2 == 0:
                 right_frame = left_frame = int(crop_img_rows/2)
             else:

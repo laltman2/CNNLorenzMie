@@ -163,16 +163,9 @@ if __name__ == '__main__':
     features = e2e.predict(img_names_path = img_files)
     example = features[3][1]
 
-    p = example.model.particle
-    print('Particle Params:',p.r_p, p.a_p, p.n_p)
-    ins = example.instrument
-    print('Instrument Params:', ins.n_m, ins.magnification, ins.wavelength, ins.wavenumber())
-    coords = example.coordinates
-    print(coords)
-    print(example.model.particle, example.model.coordinates)
-    print(example.model.field())
 
-
+    print('Example feature')
+    print(example.model.particle)
     pix = (200,200)
     
     h = example.model.hologram()
