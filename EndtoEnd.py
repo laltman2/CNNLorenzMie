@@ -9,7 +9,7 @@ sys.path.append('/home/group/lauren_yolo/')
 from pylorenzmie.theory.Instrument import Instrument, coordinates
 from Estimator import Estimator
 from YOLocalizer import Localizer
-from crop import crop
+from crop_feature import crop_feature
 from pylorenzmie.theory.Feature import Feature
 from lmfit import report_fit
 
@@ -58,7 +58,6 @@ class EndtoEnd(object):
             self.localizer = Localizer()
         else:
             self.localizer = localizer
-        self.coordinates = localizer.coordinates
         if estimator.instrument != localizer.instrument:
             warnings.warn("Warning: estimator and localizer have different instruments")
         self.instrument = estimator.instrument
@@ -96,78 +95,108 @@ class EndtoEnd(object):
         self._localizer = localizer
 
     def predict(self, img_names_path=None,
-                save_predictions=False, predictions_path='predictions.json',
-                save_crops=False, crop_dir='./cropped_img'):
+                save_predictions=False, predictions_path='predictions.json'):
         '''
         output:
         predictions: list of features
-        n images => n lists of dicts
-        per holo prediction:
-            {img_path: 'image0001.png', 'x': x_centroid, 'y': y_centroid, 'z': z_p, 'a': a_p, 'n': n_p}
-            if save_crops=True, cropped image is saved to img_path (can be ignored otherwise)
+        n images => n lists of features
         '''
         (a,b,c,d) = self.estimator.model.input_shape
         crop_px = (b,c)
         yolo_predictions = self.localizer.predict(img_names_path = img_names_path, save_to_json=False)
-        crop_img = crop(img_names_path = img_names_path, xy_preds = yolo_predictions, new_pixels = crop_px, save_to_folder = save_crops, crop_dir = crop_dir)
-        char_predictions = self.estimator.predict(img_list = crop_img, save_to_json=False)
-        out_features = []
-        for num in range(len(crop_img)):
-            f = Feature()
-            shape = crop_px
-            f.model.coordinates = coordinates(shape)
+        img_list = []
+        with open(img_files, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            filename = line.rstrip()
+            img_local = np.array(Image.open(filename))
+            img_list.append(img_local)
+        (imcols, imrows, channels) = img_list[0].shape
+        old_shape = (imrows, imcols)
+        out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
+        for frame in out_features:
+            imlist = []
+            for feat in frame:
+                imlist.append(feat.data*100)
+                feat.instrument = self.instrument
+            char_pred = self.estimator.predict(img_list = imlist, save_to_json=False)
+            for num in range(len(frame)):
+                feat = frame[num]
+                z = char_pred['z_p'][num]
+                a = char_pred['a_p'][num]
+                n = char_pred['n_p'][num]
+                feat.model.particle.z_p = z
+                feat.model.particle.a_p = a
+                feat.model.particle.n_p = n
+                feat.model.coordinates = feat.coordinates
+                
+        '''
+        List flattening not working right now (maybe not possible?)
+        outshape = crop_features.shape
+        unraveled = np.ravel(crop_features)
+        char_predictions = self.estimator.predict(img_list = unraveled, save_to_json=False)
+        for num in range(len(unraveled)):
+            f = unraveled[num]
             f.model.instrument = self.instrument
-            data = np.array(crop_img[num])/100
-            data = np.array([item for sublist in data for item in sublist])
-            f.data = data
             p = f.model.particle
             z = char_predictions['z_p'][num]
             a = char_predictions['a_p'][num]
             n = char_predictions['n_p'][num]
-            p.r_p = [100, 100, z]
+            p.z_p = z
             p.a_p = a
             p.n_p = n
-            out_features.append(f)
+        out_features = unraveled.reshape(outshape)
+        '''
         return out_features
             
 
 
 if __name__ == '__main__':
-    from pylorenzmie.theory.Instrument import coordinates
-    
+    instrument = Instrument()
+    instrument.wavelength = 0.447
+    instrument.magnification = 0.048
+    instrument.n_m = 1.340
+
     #keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_final_800.h5'
     keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_pylm_800.h5'
     #cropdir = '/home/group/endtoend/cropped_img/'
     #predictions_json = '/home/group/endtoend/ML_predictions.json'       
-    estimator = Estimator(model_path=keras_model_path)
+    estimator = Estimator(model_path=keras_model_path, instrument=instrument)
 
     
     darknet_filehead = '/home/group/lauren_yolo/darknet'
     config_path = darknet_filehead + '/cfg/holo.cfg'
     weight_path = darknet_filehead + '/backup/holo_55000.weights'
     meta_path = darknet_filehead + '/cfg/holo.data'
-    shape = (1024,1280)
-    coords = coordinates(shape)
-    localizer = Localizer(coordinates = coords, config_path = config_path, weight_path = weight_path, meta_path = meta_path)
+    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path, instrument=instrument)
 
+    
 
     e2e = EndtoEnd(estimator=estimator, localizer=localizer)
     img_files = '/home/group/example_data/movie_img/filenames.txt'
     features = e2e.predict(img_names_path = img_files)
-    example = features[3]
-    example.model.instrument.wavelength = 0.447
-    example.model.instrument.magnification = 0.048
-    example.model.instrument.n_m = 1.340
-
+    example = features[0][1]
     '''
+    p = example.model.particle
+    print('Particle Params:',p.r_p, p.a_p, p.n_p)
+    ins = example.instrument
+    print('Instrument Params:', ins.n_m, ins.magnification, ins.wavelength, ins.wavenumber())
+    coords = example.coordinates
+    print(coords)
+    print(example.model.particle, example.model.coordinates)
+    print(example.model.field())
+    '''
+
+    pix = (200,200)
+    
     h = example.model.hologram()
     fig, (ax1, ax2) = plt.subplots(1,2)
     ax1.imshow(example.data.reshape(pix), cmap='gray')
     ax2.imshow(h.reshape(pix), cmap='gray')
     fig.suptitle('Data, Predicted Hologram')
     plt.show()
-    '''
-    pix = (200,200)
+
+
     result = example.optimize()
     report_fit(result)
     h = example.model.hologram()

@@ -65,7 +65,10 @@ def crop_feature(img_list=[], xy_preds=[],
                 ytop = img_cols
                 ybot = img_cols - crop_img_cols
             cropped = img_local[ybot:ytop, xbot:xtop]
-            f.data = cropped[:,:,0]
+            data = cropped[:,:,0]
+            data = np.array(data)/100
+            data = np.array([item for sublist in data for item in sublist])
+            f.data = data
             coords = coordinates(shape = new_shape, corner=(xbot, ybot))
             f.coordinates = coords
             f.model.particle.x_p = x

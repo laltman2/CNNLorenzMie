@@ -39,8 +39,6 @@ class Estimator(object):
         Keras model with input: image, output: z_p, a_p, n_p
         image is np.ndarray of images with size=pixels, formatted with keras backend
         outputs are np.ndarray of floats
-    pixels: tuple                    #coordinates instead?
-        (img_rows, img_cols)
     instrument: Instrument
         Object resprenting the light-scattering instrument
         
