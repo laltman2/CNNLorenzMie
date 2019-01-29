@@ -82,29 +82,24 @@ def crop_feature(img_list=[], xy_preds=[],
 if __name__=='__main__':
     from matplotlib import pyplot as plt
     from PIL import Image
-    import json
+    import json, cv2
     
-    img_files = '/home/group/example_data/movie_img/filenames.txt'
-    preds_file = './yolo_predictions.json'
-    img_list = []
-    with open(img_files, 'r') as f:
-        lines = f.readlines()
-    for line in lines:
-        filename = line.rstrip()
-        img_local = np.array(Image.open(filename))
-        img_list.append(img_local)
+    img_file = 'examples/test_image_large.png'
+    img = cv2.imread(img_file)
+    preds_file = 'examples/test_yolo_pred.json'
 
     with open(preds_file, 'r') as f:
         data = json.load(f)
     xy_preds = data
 
-    imlist = crop_feature(img_list=img_list, xy_preds = xy_preds)
-    for imnum in range(10):
-        curim = imlist[imnum]
-        print('Example Image ', imnum+1)
-        for fnum in range(len(curim)):
-            print('Feature ', fnum+1)
-            feat = curim[fnum]
-            print('(x,y) = ', feat.model.particle.r_p[:2])
-            plt.imshow(feat.data, cmap='gray')
-            plt.show()
+    shape = (201,201)
+    imlist = crop_feature(img_list=[img], xy_preds = xy_preds)
+    example = imlist[0]
+    print('Example Image')
+    for fnum in range(len(example)):
+        print('Feature ', fnum+1)
+        feat = example[fnum]
+        print('(x,y) = ', feat.model.particle.r_p[:2])
+        data = feat.data
+        plt.imshow(data.reshape(shape), cmap='gray')
+        plt.show()

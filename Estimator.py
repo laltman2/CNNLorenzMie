@@ -143,6 +143,8 @@ class Estimator(object):
                 img_local = np.array(Image.open(filename))
                 crop_img.append(img_local)
         crop_img = np.array(crop_img)
+        if crop_img.shape[-1]==3:
+            crop_img = crop_img[:,:,:,0]
         crop_img = format_image(crop_img, self.pixels)
         crop_img = crop_img/255
 
@@ -168,17 +170,17 @@ class Estimator(object):
 
 if __name__ == '__main__':
     keras_model_path = 'keras_models/predict_lab_stamp_pylm_800.h5'
-    cropdir = '../cropped_img'
-    img_filepath = cropdir+'/filenames.txt'
-    #predictions_json = '/home/group/endtoend/ML_predictions.json'       
+    img_path = 'examples/test_image_crop.png'
+    import cv2
+    img = cv2.imread(img_path)
     crop_img_rows, crop_img_cols = 200, 200
     pix = (crop_img_rows, crop_img_cols)
     
     estimator = Estimator(model_path=keras_model_path)
-    data = estimator.predict(img_names_path = img_filepath)
+    data = estimator.predict(img_list = [img])
     example_z = round(data['z_p'][0],1)
     example_a = round(data['a_p'][0],3)
     example_n = round(data['n_p'][0],3)
-    print('Image 1:')
+    print('Example Image:')
     print('Particle of size {}um with refractive index {} at height {}'.format(example_a, example_n, example_z))
     

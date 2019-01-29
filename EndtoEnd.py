@@ -145,16 +145,10 @@ if __name__ == '__main__':
     meta_path = 'cfg_darknet/holo.data'
     localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path, instrument=instrument)
 
-    
-    img_files = '/home/group/example_data/movie_img/filenames.txt'
-    img_list = []
-    with open(img_files, 'r') as f:
-        lines = f.readlines()
-    for line in lines:
-        filename = line.rstrip()
-        img_local = np.array(Image.open(filename))
-        img_list.append(img_local)
-
+    img_file = 'examples/test_image_large.png'
+    import cv2
+    img = cv2.imread(img_file)
+    img_list = [img]
     
     e2e = EndtoEnd(estimator=estimator, localizer=localizer)
     features = e2e.predict(img_list = img_list)

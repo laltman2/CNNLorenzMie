@@ -87,9 +87,10 @@ if __name__=='__main__':
     meta_path = 'cfg_darknet/holo.data'
     localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
     import cv2
-    img_file = '/home/group/example_data/movie_img/image0001.png'
+    img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
-    detection = localizer.predict(img_list = [test_img])
+    pred_path = 'examples/test_yolo_pred.json'
+    detection = localizer.predict(img_list = [test_img], save_to_json=True, predictions_path=pred_path)
     example = detection[0]
     for holo in example:
         (x,y,w,h) = holo['bbox']
