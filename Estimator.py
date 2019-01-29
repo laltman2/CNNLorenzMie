@@ -4,7 +4,6 @@ import re,os,sys
 from matplotlib import pyplot as plt
 from PIL import Image
 from keras import backend as K
-sys.path.append('/home/group/lauren_yolo/')
 from pylorenzmie.theory.Instrument import Instrument
 import tensorflow as tf
 
@@ -168,9 +167,9 @@ class Estimator(object):
 
 
 if __name__ == '__main__':
-    keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_pylm_800.h5'
-    cropdir = '/home/group/endtoend/cropped_img/'
-    img_filepath = cropdir+'filenames.txt'
+    keras_model_path = 'keras_models/predict_lab_stamp_pylm_800.h5'
+    cropdir = '../cropped_img'
+    img_filepath = cropdir+'/filenames.txt'
     #predictions_json = '/home/group/endtoend/ML_predictions.json'       
     crop_img_rows, crop_img_cols = 200, 200
     pix = (crop_img_rows, crop_img_cols)
