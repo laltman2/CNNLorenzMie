@@ -5,10 +5,9 @@ import warnings
 from matplotlib import pyplot as plt
 from PIL import Image
 from keras import backend as K
-sys.path.append('/home/group/lauren_yolo/')
 from pylorenzmie.theory.Instrument import Instrument, coordinates
 from Estimator import Estimator
-from YOLocalizer import Localizer
+from Localizer_direct import Localizer
 from crop_feature import crop_feature
 from pylorenzmie.theory.Feature import Feature
 from lmfit import report_fit
@@ -94,7 +93,7 @@ class EndtoEnd(object):
     def localizer(self, localizer):
         self._localizer = localizer
 
-    def predict(self, img_names_path=None,
+    def predict(self, img_list=[],
                 save_predictions=False, predictions_path='predictions.json'):
         '''
         output:
@@ -103,14 +102,7 @@ class EndtoEnd(object):
         '''
         (a,b,c,d) = self.estimator.model.input_shape
         crop_px = (b,c)
-        yolo_predictions = self.localizer.predict(img_names_path = img_names_path, save_to_json=False)
-        img_list = []
-        with open(img_files, 'r') as f:
-            lines = f.readlines()
-        for line in lines:
-            filename = line.rstrip()
-            img_local = np.array(Image.open(filename))
-            img_list.append(img_local)
+        yolo_predictions = self.localizer.predict(img_list = img_list, save_to_json=False)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
         out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
@@ -157,11 +149,19 @@ if __name__ == '__main__':
     localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path, instrument=instrument)
 
     
-
-    e2e = EndtoEnd(estimator=estimator, localizer=localizer)
     img_files = '/home/group/example_data/movie_img/filenames.txt'
-    features = e2e.predict(img_names_path = img_files)
-    example = features[3][1]
+    img_list = []
+    with open(img_files, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        filename = line.rstrip()
+        img_local = np.array(Image.open(filename))
+        img_list.append(img_local)
+
+    
+    e2e = EndtoEnd(estimator=estimator, localizer=localizer)
+    features = e2e.predict(img_list = img_list)
+    example = features[0][0]
 
 
     print('Example feature')
