@@ -82,10 +82,9 @@ class Localizer(object):
         return predictions
 
 if __name__=='__main__':
-    darknet_filehead = '/home/group/pjreddie/darknet'
-    config_path = darknet_filehead + '/cfg/holo.cfg'
-    weight_path = darknet_filehead + '/backup/holo_55000.weights'
-    meta_path = darknet_filehead + '/cfg/holo.data'
+    config_path = 'cfg_darknet/holo.cfg'
+    weight_path = 'cfg_darknet/holo_55000.weights'
+    meta_path = 'cfg_darknet/holo.data'
     localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
     import cv2
     img_file = '/home/group/example_data/movie_img/image0001.png'
