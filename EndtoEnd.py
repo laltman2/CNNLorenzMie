@@ -7,7 +7,7 @@ from PIL import Image
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
 from Estimator import Estimator
-from Localizer_direct import Localizer
+from Localizer import Localizer
 from crop_feature import crop_feature
 from pylorenzmie.theory.Feature import Feature
 from lmfit import report_fit
@@ -135,17 +135,14 @@ if __name__ == '__main__':
     instrument.magnification = 0.048
     instrument.n_m = 1.340
 
-    #keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_final_800.h5'
-    keras_model_path = '/home/group/lauren_yolo/Holographic-Characterization/models/predict_lab_stamp_pylm_800.h5'
-    #cropdir = '/home/group/endtoend/cropped_img/'
-    #predictions_json = '/home/group/endtoend/ML_predictions.json'       
+    #keras_model_path = 'keras_models/predict_lab_stamp_final_800.h5'
+    keras_model_path = 'keras_models/predict_lab_stamp_pylm_800.h5'
     estimator = Estimator(model_path=keras_model_path, instrument=instrument)
 
     
-    darknet_filehead = '/home/group/lauren_yolo/darknet'
-    config_path = darknet_filehead + '/cfg/holo.cfg'
-    weight_path = darknet_filehead + '/backup/holo_55000.weights'
-    meta_path = darknet_filehead + '/cfg/holo.data'
+    config_path =  'cfg_darknet/holo.cfg'
+    weight_path ='cfg_darknet/holo_55000.weights'
+    meta_path = 'cfg_darknet/holo.data'
     localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path, instrument=instrument)
 
     
