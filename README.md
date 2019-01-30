@@ -17,6 +17,7 @@ Steps to get setup:
 
 - make darknet 
 - edit holo.data for correct path to names file, backup folder (train/valid don't matter if only using for detection)
+- change path to libdarknet.so in ./darknet.py
 - download darknet weights file
 - configure keras, tensorflow
 
