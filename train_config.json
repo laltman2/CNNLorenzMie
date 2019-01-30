@@ -5,23 +5,23 @@
 	"n_m": 1.340
     },
     "particle": {
-	"nspheres": [0, 5],
 	"a_p": [0.2, 5.0],
 	"n_p": [1.38, 2.5],
 	"k_p": [0, 0],
-	"x_p": [100, 1100],
-	"y_p": [100, 900],
+	"x_p": [100, 100],
+	"y_p": [100, 100],
 	"z_p": [50, 600]
     },
     "training": {
 	"epochs": 200,
 	"batchsize": 64,
 	"savefile": "keras_models/predict_stamp.h5"
-    }
+    },
     "directory": "./datasets/",
     "imgtype": "png",
     "shape": [201, 201],
     "noise": 0.05,
     "nframes_train": 10000,
-    "nframes_test": 1000
+    "nframes_test": 1000,
+    "delete_files_after_training": true
 }

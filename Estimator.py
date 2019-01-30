@@ -15,10 +15,10 @@ def format_image(img, crop_px):
     else:
         img = img.reshape(img.shape[0], crop_img_rows, crop_img_cols, 1)
         input_shape = (crop_img_rows, crop_img_cols, 1)
-    return(img)
+    return img, input_shape
 
 
-def rescale(min, max, target, list):
+def rescale(min, max, list):
     scalar = 1./(max-min)
     list = (list-min)*scalar
     return list
@@ -145,7 +145,7 @@ class Estimator(object):
         crop_img = np.array(crop_img)
         if crop_img.shape[-1]==3:
             crop_img = crop_img[:,:,:,0]
-        crop_img = format_image(crop_img, self.pixels)
+        crop_img, _ = format_image(crop_img, self.pixels)
         crop_img = crop_img/255
 
         stamp_model = self.model

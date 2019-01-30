@@ -1,141 +1,125 @@
 from __future__ import print_function
-import keras, json, numpy, ast
-import matplotlib.pyplot as plt
+import keras, json, shutil, os, cv2
 from keras import regularizers
 from keras.models import Sequential, Model, load_model
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D, Reshape, LSTM
-#from keras.wrappers.scikit_learn import KerasRegressor
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
+from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
 import tensorflow as tf
+import numpy as np
 from PIL import Image
+from pylorenzmie.utilities.mtd import format_json, make_value, make_sample
+try:
+    from pylorenzmie.theory.CudaLMHologram import CudaLMHologram as LMHologram
+except ImportError:
+    from pylorenzmie.theory.LMHologram import LMHologram
+from pylorenzmie.theory.Instrument import coordinates
+from pylorenzmie.theory.Sphere import Sphere
+from Estimator import rescale, format_image
 
 '''One-stop training of a new keras model for characterization of stamp-sizes holographic Lorenz-Mie images
 
 Steps to follow:
--Create your dataset using pylorenzmie.utilities.mtd
--Place your test/train datasets under the same header directory
-     example: train_path = datasets/train, test_path = datasets/test
--Update image/data parameters and training parameters in the lines below
+-edit train_config.json with appropriate params
+(make sure you have available disk space)
 -Run this file with python or nohup
+(dataset generation + training will take at least few hours)
 '''
 
-#Image dimensions
 
-img_rows, img_cols = 201,201
+configfile='train_config.json'
+with open(configfile, 'r') as f:
+    config = json.load(f)
 
+#always only one particle per stamp
+config['particle']['nspheres'] = [1,2]
+    
+'''Make Training Data'''
+# set up pipeline for hologram calculation
+shape = config['shape']
+holo = LMHologram(coordinates=coordinates(shape))
+holo.instrument.properties = config['instrument']
+imgtype = config['imgtype']
 
-#Parameter Info
-
-zmin, zmax = 50, 600
-amin, amax = 0.2, 5.0
-nmin, nmax = 1.38, 2.5
+def makedata(settype='train/', nframes=10):
+    # create directories and filenames
+    directory = os.path.expanduser(config['directory'])+settype
+    for dir in ('images', 'params'):
+        if not os.path.exists(os.path.join(directory, dir)):
+            os.makedirs(os.path.join(directory, dir))
+    shutil.copy2(configfile, directory)
+    filetxtname = os.path.join(directory, 'filenames.txt')
+    imgname = os.path.join(directory, 'images', 'image{:04d}.' + imgtype)
+    jsonname = os.path.join(directory, 'params', 'image{:04d}.json')
+    filetxt = open(filetxtname, 'w')
+    img_list = []
+    zlist = []
+    alist = []
+    nlist = []
+    for n in range(nframes):  # for each frame ...
+        print(imgname.format(n))
+        sample = make_sample(config) # ... get params for particles
+        s = sample[0]
+        zlist.append(s.z_p)
+        alist.append(s.a_p)
+        nlist.append(s.n_p)
+        # ... calculate hologram
+        frame = np.random.normal(0, config['noise'], shape)
+        if len(sample) > 0:
+            holo.particle = sample
+            frame += holo.hologram().reshape(shape)
+        else:
+            frame += 1.
+        frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
+        img_list.append(frame)
+        # ... and save the results
+        cv2.imwrite(imgname.format(n), frame)
+        with open(jsonname.format(n), 'w') as fp:
+            fp.write(format_json(sample, config))
+        filetxt.write(imgname.format(n) + '\n')
+    img_list = np.array(img_list).astype('float32')
+    zlist = np.array(zlist).astype('float32')
+    alist = np.array(alist).astype('float32')
+    nlist = np.array(nlist).astype('float32')
+    params_list = [zlist, alist, nlist]
+    return img_list, params_list
 
 
 #File names/numbers
-
-file_header = '../datasets/pylm-final/'
-numtrain = 10000
-numtest = 1000
-
-
-#Training Parameters
-
-batch_size = 64
-epochs = 200
-seed=7
-
-
-#Savefile
-
-save_file = 'keras_models/predict_stamp.h5'
-
-
-print('Opening data...')
-
-img_file_middle = 'images_labels/image'
-param_file_middle = 'params/image'
+file_header = config['directory']
+numtrain = config['nframes_train']
+numtest = config['nframes_test']
 
 
 print('Training set')
-img_train = []
-z_train = []
-a_train = []
-n_train = []
-for i in range(numtrain):
-    img_file = file_header + 'train/' + img_file_middle + str(i).zfill(4) + '.png'
-    param_file = file_header + 'train/' + param_file_middle + str(i).zfill(4) + '.json'
-    im = Image.open(img_file)
-    im_np = numpy.array(im)
-    img_train.append(im_np)
-    im.close()
-    with open(param_file, 'r') as paramfile:
-        params = json.load(paramfile)
-    if len(params) != 1:
-        print('more or less than one hologram in image', str(i).zfill(4))
-    else:
-        params = ast.literal_eval(params[0])
-        z_train.append(params['z_p'])
-        a_train.append(params['a_p'])
-        n_train.append(params['n_p'])
+img_train, params_train = makedata(settype='train/', nframes = numtrain)
+z_train, a_train, n_train = params_train
+print('Validation set')
+img_test, params_test = makedata(settype='test/', nframes = numtest)
+z_test, a_test, n_test = params_test
 
 
-img_train = numpy.array(img_train).astype('float32')
-z_train = numpy.array(z_train).astype('float32')
-a_train = numpy.array(a_train).astype('float32')
-n_train = numpy.array(n_train).astype('float32')
+#Image dimensions
+img_rows, img_cols = shape
 
-print('Test set')
-img_test = []
-z_test = []
-a_test = []
-n_test = []
-for i in range(numtest):
-    img_file = file_header + 'test/' + img_file_middle + str(i).zfill(4) + '.png'
-    param_file = file_header + 'test/' + param_file_middle + str(i).zfill(4) + '.json'
-    im = Image.open(img_file)
-    im_np = numpy.array(im)
-    img_test.append(im_np)
-    im.close()
-    with open(param_file, 'r') as paramfile:
-        params = json.load(paramfile)
-    if len(params) != 1:
-        print('more or less than one hologram in image', str(i).zfill(4))
-    else:
-        params = ast.literal_eval(params[0])
-        z_test.append(params['z_p'])
-        a_test.append(params['a_p'])
-        n_test.append(params['n_p'])
+#Parameter Info
+particle = config['particle']
+zmin, zmax = particle['z_p']
+amin, amax = particle['a_p']
+nmin, nmax = particle['n_p']
 
+#Training Parameters
+batch_size = config['training']['batchsize']
+epochs = config['training']['epochs']
+save_file = config['training']['savefile']
 
-img_test = numpy.array(img_test).astype('float32')
-z_test = numpy.array(z_test).astype('float32')
-a_test = numpy.array(a_test).astype('float32')
-n_test = numpy.array(n_test).astype('float32')
-
+#Format and rescale data for training
+print('Formatting Images...')
 img_train *= 1./255
 img_test *= 1./255
 
-#format data
-
-print('Formatting...')
-if K.image_data_format() == 'channels_first':
-    img_train = img_train.reshape(img_train.shape[0], 1, img_rows, img_cols)
-    img_test = img_test.reshape(img_test.shape[0], 1, img_rows, img_cols)
-    input_shape = (1, img_rows, img_cols)
-else:
-    img_train = img_train.reshape(img_train.shape[0], img_rows, img_cols, 1)
-    img_test = img_test.reshape(img_test.shape[0], img_rows, img_cols, 1)
-    input_shape = (img_rows, img_cols, 1)
-
-
-#Data normalization
-def rescale(min, max, list):
-    scalar=1./(max-min)
-    list = (list- min)*scalar
-    return list
+img_train, input_shape = format_image(img_train, shape)
+img_test, _ = format_image(img_test, shape)
 
 print('Rescaling target data...')
 z_train = rescale(zmin, zmax, z_train)
@@ -211,4 +195,10 @@ estimator.fit({'image' : img_train},
                                   'n': n_test}),
               callbacks=callbacks)
 
+print('Finished training')
 estimator.save(save_file)
+print('Saved keras model')
+
+if config['delete_files_after_training']:
+    head_dir = os.path.expanduser(config['directory'])
+    shutil.rmtree(head_dir)
