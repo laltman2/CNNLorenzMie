@@ -194,7 +194,7 @@ estimator.fit({'image' : img_train},
 
 
 print('Finished training')
-estimator.save(save_file)
+estimator.save(save_keras)
 print('Saved keras model')
 
 if config['delete_files_after_training']:
