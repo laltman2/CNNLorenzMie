@@ -40,6 +40,7 @@ class Estimator(object):
         outputs are np.ndarray of floats
     instrument: Instrument
         Object resprenting the light-scattering instrument
+    params_range: dict
         
     Methods
     _______
@@ -50,25 +51,19 @@ class Estimator(object):
         img_names.txt contains absolute paths of images, separated by line break
         predicts on list of images using self.model
         saves output to predictions_path if save_to_json==True
-
-    ////UNDER CONSTRUCTION////
-    create_model(self)
-        instantiates a new keras Model, updates self.model
-    train(epochs=100, batch_size=64, train_img_path=None, test_img_path=None)
-        trains model using images given
     '''
     
     def __init__(self,
                  model_path=None,
-                 instrument=None):
+                 instrument=None,
+                 config=None):
 
         '''
         Parameters
         ----------
-        pixels: tuple                    #coordinates instead?                                           
-            (img_rows, img_cols)
-        instrument: Instrument  
+        instrument: instrument object
             Object resprenting the light-scattering instrument
+        config: json config file from training
         model_path: str
             path to model.h5 file
         '''
@@ -86,11 +81,24 @@ class Estimator(object):
         # Create a session with the above options specified.
         K.tensorflow_backend.set_session(tf.Session(config=config))
         ###################################
-
+        self.params_range = {}
         if instrument is None:
             self.instrument = Instrument()
         else:
             self.instrument = instrument
+        if config is None:
+            self.params_range['z_p'] = [50, 600]
+            self.params_range['a_p'] = [0.2, 5.0]
+            self.params_range['n_p'] = [1.38, 2.5]
+        else:
+            ins = config['instrument']
+            self.instrument.wavelength = ins['wavelength']
+            self.instrument.magnification = ins['magnification']
+            self.instrument.n_m = ins['n_m']
+            particle = config['particle']
+            self.params_range['z_p'] = particle['z_p']
+            self.params_range['a_p'] = particle['a_p']
+            self.params_range['n_p'] = particle['n_p']
         if model_path is None:
             self.model=keras.models.Sequential()
             pix = (None, None)
@@ -126,6 +134,14 @@ class Estimator(object):
     @model.setter
     def model(self, model):
         self._model = model
+        
+    @property
+    def params_range(self):
+        return self._params_range
+
+    @params_range.setter
+    def params_range(self, params_range):
+        self._params_range = params_range
 
     def load_model(self, model_path=''):
         loaded = keras.models.load_model(model_path)
@@ -150,17 +166,20 @@ class Estimator(object):
 
         stamp_model = self.model
         char = stamp_model.predict(crop_img)
-        z_pred = rescale_back(50, 600, char[0])
-        a_pred = rescale_back(0.2, 5., char[1])
-        n_pred = rescale_back(1.38, 2.5, char[2])
+
+        zmin, zmax = self.params_range['z_p']
+        amin, amax = self.params_range['a_p']
+        nmin, nmax = self.params_range['n_p']
+        z_pred = rescale_back(zmin, zmax, char[0])
+        a_pred = rescale_back(amin, amax, char[1])
+        n_pred = rescale_back(nmin, nmax, char[2])
         
         zsave = [item for sublist in z_pred.tolist() for item in sublist]
         asave = [item for sublist in a_pred.tolist() for item in sublist]
         nsave = [item for sublist in n_pred.tolist() for item in sublist]
 
-        #instrument_params = self.instrument.####
     
-        data = {'z_p': zsave, 'a_p': asave, 'n_p': nsave}#, 'instrument':instrument_params}
+        data = {'z_p': zsave, 'a_p': asave, 'n_p': nsave}
 
         if save_to_json:
             with open(predictions_path, 'w') as outfile:
@@ -169,11 +188,11 @@ class Estimator(object):
 
 
 if __name__ == '__main__':
-    keras_model_path = 'keras_models/predict_lab_stamp_pylm_800.h5'
-    img_path = 'examples/test_image_crop.png'
+    keras_model_path = 'keras_models/predict_stamp_auto.h5'
+    img_path = 'examples/test_image_crop_201.png'
     import cv2
     img = cv2.imread(img_path)
-    crop_img_rows, crop_img_cols = 200, 200
+    crop_img_rows, crop_img_cols = 201, 201
     pix = (crop_img_rows, crop_img_cols)
     
     estimator = Estimator(model_path=keras_model_path)

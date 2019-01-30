@@ -41,6 +41,13 @@ holo = LMHologram(coordinates=coordinates(shape))
 holo.instrument.properties = config['instrument']
 imgtype = config['imgtype']
 
+#Parameter Info
+particle = config['particle']
+zmin, zmax = particle['z_p']
+amin, amax = particle['a_p']
+nmin, nmax = particle['n_p']
+
+
 def makedata(settype='train/', nframes=10):
     # create directories and filenames
     directory = os.path.expanduser(config['directory'])+settype
@@ -72,15 +79,22 @@ def makedata(settype='train/', nframes=10):
             frame += 1.
         frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
         img_list.append(frame)
+        
         # ... and save the results
+        #do we need?
         cv2.imwrite(imgname.format(n), frame)
         with open(jsonname.format(n), 'w') as fp:
             fp.write(format_json(sample, config))
         filetxt.write(imgname.format(n) + '\n')
+        
     img_list = np.array(img_list).astype('float32')
+    img_list *= 1./255
     zlist = np.array(zlist).astype('float32')
+    zlist = rescale(zmin, zmax, zlist)
     alist = np.array(alist).astype('float32')
+    alist = rescale(amin, amax, alist)
     nlist = np.array(nlist).astype('float32')
+    nlist = rescale(nmin, nmax, nlist)
     params_list = [zlist, alist, nlist]
     return img_list, params_list
 
@@ -102,35 +116,20 @@ z_test, a_test, n_test = params_test
 #Image dimensions
 img_rows, img_cols = shape
 
-#Parameter Info
-particle = config['particle']
-zmin, zmax = particle['z_p']
-amin, amax = particle['a_p']
-nmin, nmax = particle['n_p']
+img_train, input_shape = format_image(img_train, shape)
+img_test, _ = format_image(img_test, shape)
+
 
 #Training Parameters
 batch_size = config['training']['batchsize']
 epochs = config['training']['epochs']
 save_file = config['training']['savefile']
 
-#Format and rescale data for training
-print('Formatting Images...')
-img_train *= 1./255
-img_test *= 1./255
+save_keras = save_file+'.h5'
+save_json = save_file+'.json'
 
-img_train, input_shape = format_image(img_train, shape)
-img_test, _ = format_image(img_test, shape)
-
-print('Rescaling target data...')
-z_train = rescale(zmin, zmax, z_train)
-z_test = rescale(zmin, zmax, z_test)
-
-a_train = rescale(amin, amax, a_train)
-a_test = rescale(amin, amax, a_test)
-
-n_train = rescale(nmin, nmax, n_train)
-n_test = rescale(nmin, nmax, n_test)
-
+with open(save_json, 'w') as f:
+    json.dump(config, f)
 
 def multioutput_model():    
     model_input = keras.Input(shape=input_shape, name='image')
@@ -194,6 +193,7 @@ estimator.fit({'image' : img_train},
                                  {'z' : z_test, 'a' : a_test,
                                   'n': n_test}),
               callbacks=callbacks)
+
 
 print('Finished training')
 estimator.save(save_file)

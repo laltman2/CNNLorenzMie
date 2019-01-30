@@ -13,15 +13,15 @@
 	"z_p": [50, 600]
     },
     "training": {
-	"epochs": 200,
+	"epochs": 1000,
 	"batchsize": 64,
-	"savefile": "keras_models/predict_stamp.h5"
+	"savefile": "keras_models/predict_stamp_auto"
     },
     "directory": "./datasets/",
     "imgtype": "png",
     "shape": [201, 201],
     "noise": 0.05,
-    "nframes_train": 10000,
-    "nframes_test": 1000,
+    "nframes_train": 10,
+    "nframes_test": 10,
     "delete_files_after_training": true
 }
