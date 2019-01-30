@@ -56,7 +56,7 @@ class Estimator(object):
     def __init__(self,
                  model_path=None,
                  instrument=None,
-                 config=None):
+                 config_file=None):
 
         '''
         Parameters
@@ -86,16 +86,16 @@ class Estimator(object):
             self.instrument = Instrument()
         else:
             self.instrument = instrument
-        if config is None:
+        if config_file is None:
             self.params_range['z_p'] = [50, 600]
             self.params_range['a_p'] = [0.2, 5.0]
             self.params_range['n_p'] = [1.38, 2.5]
         else:
-            ins = config['instrument']
+            ins = config_file['instrument']
             self.instrument.wavelength = ins['wavelength']
             self.instrument.magnification = ins['magnification']
             self.instrument.n_m = ins['n_m']
-            particle = config['particle']
+            particle = config_file['particle']
             self.params_range['z_p'] = particle['z_p']
             self.params_range['a_p'] = particle['a_p']
             self.params_range['n_p'] = particle['n_p']
@@ -189,13 +189,12 @@ class Estimator(object):
 
 if __name__ == '__main__':
     keras_model_path = 'keras_models/predict_stamp_auto.h5'
+    with open('keras_models/predict_stamp_auto.json') as f:
+        config_json = json.load(f)
     img_path = 'examples/test_image_crop_201.png'
     import cv2
     img = cv2.imread(img_path)
-    crop_img_rows, crop_img_cols = 201, 201
-    pix = (crop_img_rows, crop_img_cols)
-    
-    estimator = Estimator(model_path=keras_model_path)
+    estimator = Estimator(model_path=keras_model_path, config_file=config_json)
     data = estimator.predict(img_list = [img])
     example_z = round(data['z_p'][0],1)
     example_a = round(data['a_p'][0],3)
