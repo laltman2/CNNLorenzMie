@@ -7,14 +7,12 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
 import tensorflow as tf
 import numpy as np
-from PIL import Image
 from pylorenzmie.utilities.mtd import format_json, make_value, make_sample
 try:
     from pylorenzmie.theory.CudaLMHologram import CudaLMHologram as LMHologram
 except ImportError:
     from pylorenzmie.theory.LMHologram import LMHologram
 from pylorenzmie.theory.Instrument import coordinates
-from pylorenzmie.theory.Sphere import Sphere
 from Estimator import rescale, format_image
 
 '''One-stop training of a new keras model for characterization of stamp-sizes holographic Lorenz-Mie images
