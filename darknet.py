@@ -54,7 +54,6 @@ class METADATA(Structure):
 
     
 
-#lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
 lib = CDLL("/home/group/pjreddie/darknet/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
@@ -163,20 +162,14 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
                 b = dets[j].bbox
                 res.append((meta.names[i], dets[j].prob[i], (b.x, b.y, b.w, b.h)))
     res = sorted(res, key=lambda x: -x[1])
-    #free_image(im)
+    if isinstance(image, bytes):
+        free_image(im)
     free_detections(dets, num)
     return res
 
 if __name__ == "__main__":
-    #net = load_net("cfg/densenet201.cfg", "/home/pjreddie/trained/densenet201.weights", 0)
-    #im = load_image("data/wolf.jpg", 0, 0)
-    #meta = load_meta("cfg/imagenet1k.data")
-    #r = classify(net, meta, im)
-    #print r[:10]
     import cv2
-    image = cv2.imread('../image_test.png')
-    #net = load_net(b"../cfg/holo.cfg", b"../backup/holo_55000.weights", 0)
-    #meta = load_meta(b"../cfg/holo.data")
-    net, meta = instantiate('../cfg/holo.cfg', '../backup/holo_55000.weights', '../cfg/holo.data')
+    image = cv2.imread('examples/test_image_large.png')
+    net, meta = instantiate('cfg_darknet/holo.cfg', 'cfg_darknet/holo_55000.weights', 'cfg_darknet/holo.data')
     r = detect(net, meta, image)
     print(r)
