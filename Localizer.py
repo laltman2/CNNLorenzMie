@@ -52,13 +52,15 @@ class Localizer(object):
         self._meta = meta
 
 
-    def predict(self, img_list = [],
+    def predict(self, img_list = [], thresh = 0.5,
                 save_to_json=False, predictions_path='yolo_predictions.json'):
         '''
         input:
         img_list: list of images (ie cv2.imread('image.png'))
         if save_to_json==True, saves predictions to predictions_path
         (predictions_path does nothing otherwise)
+        thresh: int
+        threshold for detection
         
         output:
         predictions: list of list of dicts
@@ -69,7 +71,7 @@ class Localizer(object):
         
         predictions = []
         for image in img_list:
-            yolopred = detect(self.net, self.meta, image)
+            yolopred = detect(self.net, self.meta, image, thresh)
             imagepreds = []
             for pred in yolopred:
                 (label,conf,bbox) = pred
