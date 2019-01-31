@@ -135,8 +135,7 @@ if __name__ == '__main__':
     instrument.magnification = 0.048
     instrument.n_m = 1.340
 
-    #keras_model_path = 'keras_models/predict_lab_stamp_final_800.h5'
-    keras_model_path = 'keras_models/predict_lab_stamp_pylm_800.h5'
+    keras_model_path = 'keras_models/predict_stamp_auto.h5'
     estimator = Estimator(model_path=keras_model_path, instrument=instrument)
 
     
@@ -157,7 +156,7 @@ if __name__ == '__main__':
 
     print('Example feature')
     print(example.model.particle)
-    pix = (200,200)
+    pix = estimator.pixels
     
     h = example.model.hologram()
     fig, (ax1, ax2) = plt.subplots(1,2)
