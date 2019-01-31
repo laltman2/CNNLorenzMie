@@ -100,8 +100,7 @@ class EndtoEnd(object):
         predictions: list of features
         n images => n lists of features
         '''
-        (a,b,c,d) = self.estimator.model.input_shape
-        crop_px = (b,c)
+        crop_px = self.estimator.pixels
         yolo_predictions = self.localizer.predict(img_list = img_list, save_to_json=False)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
