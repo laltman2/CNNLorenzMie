@@ -1,21 +1,7 @@
 import ctypes as ct
+import os
 
-
-def c_array(ctype, values):
-    arr = (ctype * len(values))()
-    arr[:] = values
-    return arr
-
-
-def array_to_image(arr):
-    arr = arr.transpose(2, 0, 1)
-    c = arr.shape[0]
-    h = arr.shape[1]
-    w = arr.shape[2]
-    arr = (arr / 255.0).flatten()
-    data = c_array(ct.c_float, arr)
-    im = IMAGE(w, h, c, data)
-    return im
+# Wrap darknet.so
 
 
 class BOX(ct.Structure):
@@ -45,8 +31,8 @@ class METADATA(ct.Structure):
     _fields_ = [("classes", ct.c_int),
                 ("names", ct.POINTER(ct.c_char_p))]
 
-
-libpath = "/home/dg86/python/CNNLorenzMie/darknet/libdarknet.so"
+libpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                       'darknet/libdarknet.so')
 lib = ct.CDLL(libpath, ct.RTLD_GLOBAL)
 lib.network_width.argtypes = [ct.c_void_p]
 lib.network_width.restype = ct.c_int
@@ -125,9 +111,30 @@ predict_image.restype = ct.POINTER(ct.c_float)
 
 
 def instantiate(config_path, weight_path, meta_path):
+    '''Load darknet
+
+    Arguments
+    ---------
+    config_path: path to confi filename
+    weight_path: path to weights file
+    meta_path: path to metadata
+    '''
     net = load_net(config_path.encode('ascii'), weight_path.encode('ascii'), 0)
     meta = load_meta(meta_path.encode('ascii'))
     return net, meta
+
+
+def array_to_image(arr):
+    '''Convert numpy ndarray to darknet image'''
+    arr = arr.transpose(2, 0, 1)
+    c = arr.shape[0]
+    h = arr.shape[1]
+    w = arr.shape[2]
+    arr = (arr / 255.0).flatten()
+    data = (ct.c_float * len(arr))()
+    data[:] = arr
+    im = IMAGE(w, h, c, data)
+    return im
 
 
 def classify(net, meta, im):
@@ -139,7 +146,7 @@ def classify(net, meta, im):
     return res
 
 
-def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
+def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
     if isinstance(image, bytes):
         # image is a filename
         # i.e. image = b'/darknet/data/dog.jpg'
