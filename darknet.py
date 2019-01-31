@@ -1,16 +1,4 @@
 import ctypes as ct
-import random
-
-
-def sample(probs):
-    s = sum(probs)
-    probs = [a / s for a in probs]
-    r = random.uniform(0, 1)
-    for i in range(len(probs)):
-        r = r - probs[i]
-        if r <= 0:
-            return i
-    return len(probs) - 1
 
 
 def c_array(ctype, values):
