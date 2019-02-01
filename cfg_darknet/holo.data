@@ -1,5 +1,5 @@
 classes = 1
 train = /home/group/lauren_yolo/darknet/datasets/pylm_notclose/train/filenames.txt
 valid = /home/group/lauren_yolo/darknet/datasets/pylm_notclose/test/filenames.txt
-names = /home/group/endtoend/OOe2e/cfg_darknet/holo.names
+names = /home/dg86/python/CNNLorenzMie/cfg_darknet/holo.names
 backup = /home/group/pjreddie/darknet/backup/
