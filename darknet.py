@@ -8,8 +8,8 @@ import os
 
 # load libdarknet.so
 
-libpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       'darknet', 'libdarknet.so')
+package_dir = os.path.dirname(os.path.realpath(__file__))
+libpath = os.path.join(package_dir, 'darknet', 'libdarknet.so')
 lib = CDLL(libpath, RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
@@ -152,13 +152,13 @@ def classify(net, meta, im):
     return res
 
 
-def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
-    '''Detect features in image
+def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
+    '''Detect features in an image
 
     Inputs
     ------
-    net: darknet instance
-    meta: metadata for network
+    network: darknet instance
+    metadata: metadata for network
     image: numpy.ndarray
         image to be analyzed
     thresh:
@@ -174,23 +174,24 @@ def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
         bounding box: [x, y, w, h]
     '''
 
-    im = array_to_image(image)
-    analyze_image(net, im)
+    c_image = array_to_image(image)
+    analyze_image(network, c_image)
     nfeatures = c_int(0)
     pnfeatures = pointer(nfeatures)
-    features = get_features(net, im.w, im.h,
+    features = get_features(network, c_image.w, c_image.h,
                             thresh, hier_thresh,
                             None, 0, pnfeatures)
     nfeatures = pnfeatures[0]
-    merge_features(features, nfeatures, meta.classes, nms)
+    merge_features(features, nfeatures, metadata.classes, nms)
 
     res = []
     for j in range(nfeatures):
-        for i in range(meta.classes):
+        for i in range(metadata.classes):
             if features[j].prob[i] > 0:
                 b = features[j].bbox
-                res.append(
-                    (meta.names[i], features[j].prob[i], (b.x, b.y, b.w, b.h)))
+                res.append((metadata.names[i],
+                            features[j].prob[i],
+                            (b.x, b.y, b.w, b.h)))
     # res = sorted(res, key=lambda x: -x[1])
     free_features(features, nfeatures)
     return res
