@@ -75,8 +75,6 @@ merge_features.argtypes = [POINTER(FEATURE), c_int, c_int, c_float]
 free_features = lib.free_detections
 free_features.argtypes = [POINTER(FEATURE), c_int]
 
-free_ptrs = lib.free_ptrs
-free_ptrs.argtypes = [POINTER(c_void_p), c_int]
 
 '''
 load_image = lib.load_image_color
@@ -92,6 +90,9 @@ rgbgr_image.argtypes = [IMAGE]
 
 free_image = lib.free_image
 free_image.argtypes = [IMAGE]
+
+free_ptrs = lib.free_ptrs
+free_ptrs.argtypes = [POINTER(c_void_p), c_int]
 
 make_network_boxes = lib.make_network_boxes
 make_network_boxes.argtypes = [c_void_p]
@@ -115,23 +116,42 @@ letterbox_image.restype = IMAGE
 '''
 
 
-def instantiate(config_path, weight_path, meta_path):
+def instantiate(config, weights, metadata):
     '''Load darknet
 
-    Arguments
-    ---------
-    config_path: path to confi filename
-    weight_path: path to weights file
-    meta_path: path to metadata
+    Inputs
+    ------
+    config: str
+        path to config filename
+    weights: str
+        path to weights file
+    metadata: str
+        path to metadata
+
+    Outputs
+    -------
+    network: pointer to loaded network
+    metadata: pointer to loaded metadata
     '''
-    net = load_network(config_path.encode('ascii'),
-                       weight_path.encode('ascii'), 0)
-    meta = load_metadata(meta_path.encode('ascii'))
+    net = load_network(config.encode('ascii'),
+                       weights.encode('ascii'), 0)
+    meta = load_metadata(metadata.encode('ascii'))
     return net, meta
 
 
 def array_to_image(arr):
-    '''Convert numpy ndarray to darknet image'''
+    '''Convert numpy ndarray to darknet image
+
+    Inputs
+    ------
+    arr: numpy.ndarray
+        image to analyze
+
+    Outputs
+    -------
+    c_image: IMAGE
+        image data formatted for darknet
+    '''
     arr = arr.transpose(2, 0, 1)
     c = arr.shape[0]
     h = arr.shape[1]
@@ -139,17 +159,8 @@ def array_to_image(arr):
     arr = (arr / 255.0).flatten()
     data = (c_float * len(arr))()
     data[:] = arr
-    im = IMAGE(w, h, c, data)
-    return im
-
-
-def classify(net, meta, im):
-    out = analyze_image(net, im)
-    res = []
-    for i in range(meta.classes):
-        res.append((meta.names[i], out[i]))
-    res = sorted(res, key=lambda x: -x[1])
-    return res
+    c_image = IMAGE(w, h, c, data)
+    return c_image
 
 
 def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
