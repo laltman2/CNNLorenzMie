@@ -8,8 +8,8 @@ import os
 
 # load libdarknet.so
 
-libpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       'darknet', 'libdarknet.so')
+package_dir = os.path.dirname(os.path.realpath(__file__))
+libpath = os.path.join(package_dir, 'darknet', 'libdarknet.so')
 lib = CDLL(libpath, RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
@@ -24,7 +24,7 @@ class BOX(Structure):
                 ("h", c_float)]
 
 
-class DETECTION(Structure):
+class FEATURE(Structure):
     _fields_ = [("bbox", BOX),
                 ("classes", c_int),
                 ("prob", POINTER(c_float)),
@@ -46,93 +46,112 @@ class METADATA(Structure):
 
 
 # wrap darknet functions
-predict = lib.network_predict
-predict.argtypes = [c_void_p, POINTER(c_float)]
-predict.restype = POINTER(c_float)
+load_network = lib.load_network
+load_network.argtypes = [c_char_p, c_char_p, c_int]
+load_network.restype = c_void_p
 
-set_gpu = lib.cuda_set_device
-set_gpu.argtypes = [c_int]
+load_metadata = lib.get_metadata
+load_metadata.argtypes = [c_char_p]
+load_metadata.restype = METADATA
+
+analyze_image = lib.network_predict_image
+analyze_image.argtypes = [c_void_p, IMAGE]
+analyze_image.restype = POINTER(c_float)
+
+get_features = lib.get_network_boxes
+get_features.argtypes = [c_void_p,
+                         c_int,
+                         c_int,
+                         c_float,
+                         c_float,
+                         POINTER(c_int),
+                         c_int,
+                         POINTER(c_int)]
+get_features.restype = POINTER(FEATURE)
+
+merge_features = lib.do_nms_obj
+merge_features.argtypes = [POINTER(FEATURE), c_int, c_int, c_float]
+
+free_features = lib.free_detections
+free_features.argtypes = [POINTER(FEATURE), c_int]
+
+
+'''
+load_image = lib.load_image_color
+load_image.argtypes = [c_char_p, c_int, c_int]
+load_image.restype = IMAGE
 
 make_image = lib.make_image
 make_image.argtypes = [c_int, c_int, c_int]
 make_image.restype = IMAGE
 
-get_network_boxes = lib.get_network_boxes
-get_network_boxes.argtypes = [c_void_p,
-                              c_int,
-                              c_int,
-                              c_float,
-                              c_float,
-                              POINTER(c_int),
-                              c_int,
-                              POINTER(c_int)]
-get_network_boxes.restype = POINTER(DETECTION)
-
-make_network_boxes = lib.make_network_boxes
-make_network_boxes.argtypes = [c_void_p]
-make_network_boxes.restype = POINTER(DETECTION)
-
-free_detections = lib.free_detections
-free_detections.argtypes = [POINTER(DETECTION), c_int]
-
-free_ptrs = lib.free_ptrs
-free_ptrs.argtypes = [POINTER(c_void_p), c_int]
-
-network_predict = lib.network_predict
-network_predict.argtypes = [c_void_p, POINTER(c_float)]
-
-reset_rnn = lib.reset_rnn
-reset_rnn.argtypes = [c_void_p]
-
-load_net = lib.load_network
-load_net.argtypes = [c_char_p, c_char_p, c_int]
-load_net.restype = c_void_p
-
-do_nms_obj = lib.do_nms_obj
-do_nms_obj.argtypes = [POINTER(DETECTION), c_int, c_int, c_float]
-
-do_nms_sort = lib.do_nms_sort
-do_nms_sort.argtypes = [POINTER(DETECTION), c_int, c_int, c_float]
+rgbgr_image = lib.rgbgr_image
+rgbgr_image.argtypes = [IMAGE]
 
 free_image = lib.free_image
 free_image.argtypes = [IMAGE]
 
+free_ptrs = lib.free_ptrs
+free_ptrs.argtypes = [POINTER(c_void_p), c_int]
+
+make_network_boxes = lib.make_network_boxes
+make_network_boxes.argtypes = [c_void_p]
+make_network_boxes.restype = POINTER(FEATURE)
+
+predict = lib.network_predict
+predict.argtypes = [c_void_p, POINTER(c_float)]
+predict.restype = POINTER(c_float)
+
+do_nms_sort = lib.do_nms_sort
+do_nms_sort.argtypes = [POINTER(FEATURE), c_int, c_int, c_float]
+
+set_gpu = lib.cuda_set_device
+set_gpu.argtypes = [c_int]
+
+reset_rnn = lib.reset_rnn
+reset_rnn.argtypes = [c_void_p]
 letterbox_image = lib.letterbox_image
 letterbox_image.argtypes = [IMAGE, c_int, c_int]
 letterbox_image.restype = IMAGE
-
-load_meta = lib.get_metadata
-lib.get_metadata.argtypes = [c_char_p]
-lib.get_metadata.restype = METADATA
-
-load_image = lib.load_image_color
-load_image.argtypes = [c_char_p, c_int, c_int]
-load_image.restype = IMAGE
-
-rgbgr_image = lib.rgbgr_image
-rgbgr_image.argtypes = [IMAGE]
-
-predict_image = lib.network_predict_image
-predict_image.argtypes = [c_void_p, IMAGE]
-predict_image.restype = POINTER(c_float)
+'''
 
 
-def instantiate(config_path, weight_path, meta_path):
+def instantiate(config, weights, metadata):
     '''Load darknet
 
-    Arguments
-    ---------
-    config_path: path to confi filename
-    weight_path: path to weights file
-    meta_path: path to metadata
+    Inputs
+    ------
+    config: str
+        path to config filename
+    weights: str
+        path to weights file
+    metadata: str
+        path to metadata
+
+    Outputs
+    -------
+    network: pointer to loaded network
+    metadata: pointer to loaded metadata
     '''
-    net = load_net(config_path.encode('ascii'), weight_path.encode('ascii'), 0)
-    meta = load_meta(meta_path.encode('ascii'))
+    net = load_network(config.encode('ascii'),
+                       weights.encode('ascii'), 0)
+    meta = load_metadata(metadata.encode('ascii'))
     return net, meta
 
 
 def array_to_image(arr):
-    '''Convert numpy ndarray to darknet image'''
+    '''Convert numpy ndarray to darknet image
+
+    Inputs
+    ------
+    arr: numpy.ndarray
+        image to analyze
+
+    Outputs
+    -------
+    c_image: IMAGE
+        image data formatted for darknet
+    '''
     arr = arr.transpose(2, 0, 1)
     c = arr.shape[0]
     h = arr.shape[1]
@@ -140,26 +159,17 @@ def array_to_image(arr):
     arr = (arr / 255.0).flatten()
     data = (c_float * len(arr))()
     data[:] = arr
-    im = IMAGE(w, h, c, data)
-    return im
+    c_image = IMAGE(w, h, c, data)
+    return c_image
 
 
-def classify(net, meta, im):
-    out = predict_image(net, im)
-    res = []
-    for i in range(meta.classes):
-        res.append((meta.names[i], out[i]))
-    res = sorted(res, key=lambda x: -x[1])
-    return res
-
-
-def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
-    '''Detect features in image
+def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
+    '''Detect features in an image
 
     Inputs
     ------
-    net: darknet instance
-    meta: metadata for network
+    network: darknet instance
+    metadata: metadata for network
     image: numpy.ndarray
         image to be analyzed
     thresh:
@@ -175,26 +185,26 @@ def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
         bounding box: [x, y, w, h]
     '''
 
-    im = array_to_image(image)
-    #rgbgr_image(im)
-    num = c_int(0)
-    pnum = pointer(num)
-    predict_image(net, im)
-    dets = get_network_boxes(
-        net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
-    num = pnum[0]
-    if (nms):
-        do_nms_obj(dets, num, meta.classes, nms)
+    c_image = array_to_image(image)
+    analyze_image(network, c_image)
+    nfeatures = c_int(0)
+    pnfeatures = pointer(nfeatures)
+    features = get_features(network, c_image.w, c_image.h,
+                            thresh, hier_thresh,
+                            None, 0, pnfeatures)
+    nfeatures = pnfeatures[0]
+    merge_features(features, nfeatures, metadata.classes, nms)
 
     res = []
-    for j in range(num):
-        for i in range(meta.classes):
-            if dets[j].prob[i] > 0:
-                b = dets[j].bbox
-                res.append(
-                    (meta.names[i], dets[j].prob[i], (b.x, b.y, b.w, b.h)))
-    res = sorted(res, key=lambda x: -x[1])
-    free_detections(dets, num)
+    for j in range(nfeatures):
+        for i in range(metadata.classes):
+            if features[j].prob[i] > 0:
+                b = features[j].bbox
+                res.append((metadata.names[i],
+                            features[j].prob[i],
+                            (b.x, b.y, b.w, b.h)))
+    # res = sorted(res, key=lambda x: -x[1])
+    free_features(features, nfeatures)
     return res
 
 
