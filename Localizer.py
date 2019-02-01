@@ -2,74 +2,50 @@
 # -*- coding: utf-8 -*-
 
 import darknet
-from pylorenzmie.theory.Instrument import Instrument
-import json
+import os
 
 
 class Localizer(object):
+
     '''
     Attributes
     __________
-    net: network
-    meta: metadata
-    instrument: Instrument
-        Object representing the light-scattering instrument
+    configuration: str
+        Name of trained configuration
+
+    threshold: float
+        Confidence threshold for feature detection
+        default: 0.5
 
     Methods
     _______
-    predict(img_list, save_to_json, predictions_path)
+    predict(img_list)
     '''
 
-    def __init__(self,
-                 config_path='',
-                 meta_path='',
-                 weight_path='',
-                 instrument=None):
-        if instrument is None:
-            self.instrument = Instrument()
-        else:
-            self.instrument = instrument
-        self.net, self.meta = darknet.instantiate(
-            config_path, weight_path, meta_path)
+    def __init__(self, configuration='holo', threshold=0.5):
+        dir = 'cfg_darknet'
+        self.configuration = configuration
+        conf = os.path.join(dir, self.configuration + '.conf')
+        weights = os.path.join(dir, self.configuration + '.weights')
+        metadata = os.path.join(dir, self.configuration + '.metadata')
+        self.net, self.meta = darknet.instantiate(conf,
+                                                  weights,
+                                                  metadata)
+        self.threshold = threshold
 
-    @property
-    def instrument(self):
-        return self._instrument
+    def predict(self, img_list=[]):
+        '''Detect and localize features in an image
 
-    @instrument.setter
-    def instrument(self, instrument):
-        self._instrument = instrument
+        Inputs
+        ------
+        img_list: list
+           images to be analyzed
 
-    @property
-    def net(self):
-        return self._net
+        thresh: float
+           threshold confidence for detection
 
-    @net.setter
-    def net(self, net):
-        self._net = net
-
-    @property
-    def meta(self):
-        return self._meta
-
-    @meta.setter
-    def meta(self, meta):
-        self._meta = meta
-
-    def predict(self,
-                img_list=[],
-                thresh=0.5,
-                save_to_json=False,
-                predictions_path='yolo_predictions.json'):
-        '''
-        input:
-        img_list: list of images (ie cv2.imread('image.png'))
-        if save_to_json==True, saves predictions to predictions_path
-        (predictions_path does nothing otherwise)
-        thresh: int
-        threshold for detection
-
-        output:
+        Outputs
+        -------
         predictions: list of list of dicts
         n images => n lists of dicts
         per holo prediction:
@@ -78,37 +54,26 @@ class Localizer(object):
 
         predictions = []
         for image in img_list:
-            yolopred = darknet.detect(self.net, self.meta, image, thresh)
+            yolopred = darknet.detect(
+                self.net, self.meta, image, self.threshold)
             imagepreds = []
             for pred in yolopred:
                 (label, conf, bbox) = pred
                 imagepreds.append({'conf': conf, 'bbox': bbox})
             predictions.append(imagepreds)
-
-        if save_to_json:
-            with open(predictions_path, 'w') as outfile:
-                json.dump(predictions, outfile)
         return predictions
 
 
 if __name__ == '__main__':
     import cv2
 
-    config_path = 'cfg_darknet/holo.cfg'
-    weight_path = 'cfg_darknet/holo_55000.weights'
-    meta_path = 'cfg_darknet/holo.data'
-    localizer = Localizer(config_path=config_path,
-                          weight_path=weight_path, meta_path=meta_path)
+    localizer = Localizer(configuration='holo')
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
-    pred_path = 'examples/test_yolo_pred.json'
-    detection = localizer.predict(
-        img_list=[test_img], save_to_json=True, predictions_path=pred_path)
+    detection = localizer.predict(img_list=[test_img])
     example = detection[0]
-    for holo in example:
-        (x, y, w, h) = holo['bbox']
-        conf = holo['conf']*100
-        x = round(x, 3)
-        y = round(y, 3)
-        conf = round(conf)
-        print('Hologram detected at ({},{}) with {}% confidence.'.format(x, y, conf))
+    for feature in example:
+        (x, y, w, h) = feature['bbox']
+        conf = feature['conf']
+        msg = 'Feature at ({0:.1f}, {1:.1f}) with {2:.2f} confidence'
+        print(msg.format(x, y, conf))
