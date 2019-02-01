@@ -68,7 +68,7 @@ class Localizer(object):
 if __name__ == '__main__':
     import cv2
 
-    localizer = Localizer(configuration='holo')
+    localizer = Localizer('holo')
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
     detection = localizer.predict(img_list=[test_img])

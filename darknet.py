@@ -4,7 +4,11 @@
 from ctypes import (CDLL, RTLD_GLOBAL, POINTER, pointer, Structure,
                     c_void_p, c_char_p, c_int, c_float)
 import os
+from wurlitzer import pipes
+import logging
 
+logging.basicConfig()
+logger = logging.getLogger('darknet')
 
 # load libdarknet.so
 
@@ -133,9 +137,13 @@ def instantiate(config, weights, metadata):
     network: pointer to loaded network
     metadata: pointer to loaded metadata
     '''
-    net = load_network(config.encode('ascii'),
-                       weights.encode('ascii'), 0)
-    meta = load_metadata(metadata.encode('ascii'))
+
+    logger.info('Loading network and metadata')
+    with pipes() as (out, err):
+        net = load_network(config.encode('ascii'),
+                           weights.encode('ascii'), 0)
+        meta = load_metadata(metadata.encode('ascii'))
+    logger.info(err.read())
     return net, meta
 
 
@@ -210,10 +218,17 @@ def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
 
 if __name__ == "__main__":
     import cv2
-    image = cv2.imread('examples/test_image_large.png')
+    import time
+
     config = 'cfg_darknet/holo.cfg'
     weights = 'cfg_darknet/holo_55000.weights'
     metadata = 'cfg_darknet/holo.data'
     net, meta = instantiate(config, weights, metadata)
-    r = detect(net, meta, image)
+
+    image = cv2.imread('examples/test_image_large.png')
+
+    for n in range(5):
+        start = time.time()
+        r = detect(net, meta, image)
+        print(time.time() - start)
     print(r)
