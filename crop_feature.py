@@ -41,15 +41,15 @@ def crop_feature(img_list=[], xy_preds=[],
             if crop_img_rows % 2 == 0:
                 right_frame = left_frame = int(crop_img_rows/2)
             else:
-                left_frame = int(np.floor(crop_img_rows/2))
-                right_frame = int(np.ceil(crop_img_rows/2))
+                left_frame = int(np.floor(crop_img_rows/2.))
+                right_frame = int(np.ceil(crop_img_rows/2.))
             xbot = xc - left_frame
             xtop = xc + right_frame
             if crop_img_cols % 2 == 0:
-                top_frame = bot_frame = int(crop_img_cols/2)
+                top_frame = bot_frame = int(crop_img_cols/2.)
             else:
-                top_frame = int(np.ceil(crop_img_cols/2))
-                bot_frame = int(np.floor(crop_img_cols/2))
+                top_frame = int(np.ceil(crop_img_cols/2.))
+                bot_frame = int(np.floor(crop_img_cols/2.))
             ybot = yc - bot_frame
             ytop = yc + top_frame
             if xbot<0:
@@ -66,7 +66,7 @@ def crop_feature(img_list=[], xy_preds=[],
                 ybot = img_cols - crop_img_cols
             cropped = img_local[ybot:ytop, xbot:xtop]
             data = cropped[:,:,0]
-            data = np.array(data)/100
+            data = np.array(data)/100.
             data = np.array([item for sublist in data for item in sublist])
             f.data = data
             coords = coordinates(shape = new_shape, corner=(xbot, ybot))
