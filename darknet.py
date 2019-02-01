@@ -69,8 +69,8 @@ get_features.argtypes = [c_void_p,
                          POINTER(c_int)]
 get_features.restype = POINTER(FEATURE)
 
-do_nms_obj = lib.do_nms_obj
-do_nms_obj.argtypes = [POINTER(FEATURE), c_int, c_int, c_float]
+merge_features = lib.do_nms_obj
+merge_features.argtypes = [POINTER(FEATURE), c_int, c_int, c_float]
 
 free_features = lib.free_detections
 free_features.argtypes = [POINTER(FEATURE), c_int]
@@ -175,24 +175,24 @@ def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
     '''
 
     im = array_to_image(image)
-    num = c_int(0)
-    pnum = pointer(num)
     analyze_image(net, im)
-    features = get_features(
-        net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
-    num = pnum[0]
-    if (nms):
-        do_nms_obj(features, num, meta.classes, nms)
+    nfeatures = c_int(0)
+    pnfeatures = pointer(nfeatures)
+    features = get_features(net, im.w, im.h,
+                            thresh, hier_thresh,
+                            None, 0, pnfeatures)
+    nfeatures = pnfeatures[0]
+    merge_features(features, nfeatures, meta.classes, nms)
 
     res = []
-    for j in range(num):
+    for j in range(nfeatures):
         for i in range(meta.classes):
             if features[j].prob[i] > 0:
                 b = features[j].bbox
                 res.append(
                     (meta.names[i], features[j].prob[i], (b.x, b.y, b.w, b.h)))
-    res = sorted(res, key=lambda x: -x[1])
-    free_features(features, num)
+    # res = sorted(res, key=lambda x: -x[1])
+    free_features(features, nfeatures)
     return res
 
 
