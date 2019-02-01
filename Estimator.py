@@ -158,10 +158,10 @@ class Estimator(object):
                 img_local = np.array(Image.open(filename))
                 crop_img.append(img_local)
         crop_img = np.array(crop_img)
-        if crop_img.shape[-1]==3:
+        if crop_img.shape[-1]==3: #if color image, convert to grayscale
             crop_img = crop_img[:,:,:,0]
         crop_img, _ = format_image(crop_img, self.pixels)
-        crop_img = crop_img/255
+        crop_img = crop_img/255.
 
         stamp_model = self.model
         char = stamp_model.predict(crop_img)
