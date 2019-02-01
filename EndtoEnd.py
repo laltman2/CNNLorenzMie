@@ -1,16 +1,13 @@
 import numpy as np
-import json, keras
-import re,os,sys
+import keras
 import warnings
-from matplotlib import pyplot as plt
-from PIL import Image
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
 from Estimator import Estimator
 from Localizer import Localizer
 from crop_feature import crop_feature
 from pylorenzmie.theory.Feature import Feature
-from lmfit import report_fit
+
 
 class EndtoEnd(object):
 
@@ -93,22 +90,21 @@ class EndtoEnd(object):
     def localizer(self, localizer):
         self._localizer = localizer
 
-    def predict(self, img_list=[],
-                save_predictions=False, predictions_path='predictions.json'):
+    def predict(self, img_list=[]):
         '''
         output:
         predictions: list of features
         n images => n lists of features
         '''
         crop_px = self.estimator.pixels
-        yolo_predictions = self.localizer.predict(img_list = img_list, save_to_json=False)
+        yolo_predictions = self.localizer.predict(img_list = img_list)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
         out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
         structure = list(map(len, out_features))
         flat_features = [item for sublist in out_features for item in sublist]
         imlist = [feat.data*100 for feat in flat_features]
-        char_predictions = self.estimator.predict(img_list = imlist, save_to_json=False)
+        char_predictions = self.estimator.predict(img_list = imlist)
         zpop = char_predictions['z_p']
         apop = char_predictions['a_p']
         npop = char_predictions['n_p']
@@ -129,22 +125,25 @@ class EndtoEnd(object):
 
 
 if __name__ == '__main__':
-    instrument = Instrument()
-    instrument.wavelength = 0.447
-    instrument.magnification = 0.048
-    instrument.n_m = 1.340
+    from lmfit import report_fit
+    import cv2, json
+    from matplotlib import pyplot as plt
 
-    keras_model_path = 'keras_models/predict_stamp_auto.h5'
-    estimator = Estimator(model_path=keras_model_path, instrument=instrument)
+
+    keras_head_path = 'keras_models/predict_stamp_auto'
+    keras_model_path = keras_head_path+'.h5'
+    keras_config_path = keras_head_path+'.json'
+    with open(keras_config_path, 'r') as f:
+        kconfig = json.load(f)
+    estimator = Estimator(model_path=keras_model_path, config_file=kconfig)
 
     
     config_path =  'cfg_darknet/holo.cfg'
     weight_path ='cfg_darknet/holo_55000.weights'
     meta_path = 'cfg_darknet/holo.data'
-    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path, instrument=instrument)
+    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
 
     img_file = 'examples/test_image_large.png'
-    import cv2
     img = cv2.imread(img_file)
     img_list = [img]
     

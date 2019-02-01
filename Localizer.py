@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import darknet
+<< << << < HEAD
 import os
+== == == =
+from pylorenzmie.theory.Instrument import Instrument
+>>>>>> > 4b1cb56b0754badf9da09eb744cf9b7e09de1b16
 
 
 class Localizer(object):
@@ -46,7 +50,8 @@ class Localizer(object):
 
         Outputs
         -------
-        predictions: list of list of dicts
+        predictions: list
+            list of dicts
         n images => n lists of dicts
         per holo prediction:
              {'conf': 50%, 'bbox': (x_centroid, y_centroid, width, height)}
