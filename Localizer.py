@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import darknet
-<< << << < HEAD
 import os
-== == == =
-from pylorenzmie.theory.Instrument import Instrument
->>>>>> > 4b1cb56b0754badf9da09eb744cf9b7e09de1b16
 
 
 class Localizer(object):
