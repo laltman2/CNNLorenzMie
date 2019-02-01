@@ -176,7 +176,7 @@ def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
     '''
 
     im = array_to_image(image)
-    rgbgr_image(im)
+    #rgbgr_image(im)
     num = c_int(0)
     pnum = pointer(num)
     predict_image(net, im)
