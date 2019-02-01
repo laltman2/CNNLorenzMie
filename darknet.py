@@ -192,7 +192,7 @@ def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
                 res.append(
                     (meta.names[i], features[j].prob[i], (b.x, b.y, b.w, b.h)))
     res = sorted(res, key=lambda x: -x[1])
-    free_detections(dets, num)
+    free_features(features, num)
     return res
 
 
