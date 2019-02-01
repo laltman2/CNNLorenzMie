@@ -154,15 +154,29 @@ def classify(net, meta, im):
 
 
 def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
-    if isinstance(image, bytes):
-        # image is a filename
-        # i.e. image = b'/darknet/data/dog.jpg'
-        im = load_image(image, 0, 0)
-    else:
-        # image is a numpy array
-        # i.e. image = cv2.imread('/darknet/data/dog.jpg')
-        im = array_to_image(image)
-        rgbgr_image(im)
+    '''Detect features in image
+
+    Inputs
+    ------
+    net: darknet instance
+    meta: metadata for network
+    image: numpy.ndarray
+        image to be analyzed
+    thresh:
+    hier_thresh:
+    nms: threshold for non-maximal suppression
+
+    Output
+    ------
+    List of features detected in image.
+    feature: tuple
+        classification: str
+        confidence: float
+        bounding box: [x, y, w, h]
+    '''
+
+    im = array_to_image(image)
+    rgbgr_image(im)
     num = c_int(0)
     pnum = pointer(num)
     predict_image(net, im)
