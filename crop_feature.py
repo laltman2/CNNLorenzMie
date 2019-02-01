@@ -81,7 +81,6 @@ def crop_feature(img_list=[], xy_preds=[],
 
 if __name__=='__main__':
     from matplotlib import pyplot as plt
-    from PIL import Image
     import json, cv2
     
     img_file = 'examples/test_image_large.png'
