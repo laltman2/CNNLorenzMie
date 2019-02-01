@@ -1,6 +1,5 @@
 import numpy as np
 import keras
-import re,os,sys
 import warnings
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
@@ -127,23 +126,22 @@ class EndtoEnd(object):
 
 if __name__ == '__main__':
     from lmfit import report_fit
-    import cv2
+    import cv2, json
     from matplotlib import pyplot as plt
 
-    
-    instrument = Instrument()
-    instrument.wavelength = 0.447
-    instrument.magnification = 0.048
-    instrument.n_m = 1.340
 
-    keras_model_path = 'keras_models/predict_stamp_auto.h5'
-    estimator = Estimator(model_path=keras_model_path, instrument=instrument)
+    keras_head_path = 'keras_models/predict_stamp_auto'
+    keras_model_path = keras_head_path+'.h5'
+    keras_config_path = keras_head_path+'.json'
+    with open(keras_config_path, 'r') as f:
+        kconfig = json.load(f)
+    estimator = Estimator(model_path=keras_model_path, config_file=kconfig)
 
     
     config_path =  'cfg_darknet/holo.cfg'
     weight_path ='cfg_darknet/holo_55000.weights'
     meta_path = 'cfg_darknet/holo.data'
-    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path, instrument=instrument)
+    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
 
     img_file = 'examples/test_image_large.png'
     img = cv2.imread(img_file)
