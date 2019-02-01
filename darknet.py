@@ -1,7 +1,20 @@
-from ctypes import (CDLL, RTLD_GLOBAL, POINTER, pointer, Structure, c_void_p, c_char_p, c_int, c_float)
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from ctypes import (CDLL, RTLD_GLOBAL, POINTER, pointer, Structure,
+                    c_void_p, c_char_p, c_int, c_float)
 import os
 
-# Wrap darknet.so
+
+# load libdarknet.so
+
+libpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                       'darknet', 'libdarknet.so')
+lib = CDLL(libpath, RTLD_GLOBAL)
+lib.network_width.argtypes = [c_void_p]
+lib.network_width.restype = c_int
+lib.network_height.argtypes = [c_void_p]
+lib.network_height.restype = c_int
 
 
 class BOX(Structure):
@@ -31,14 +44,8 @@ class METADATA(Structure):
     _fields_ = [("classes", c_int),
                 ("names", POINTER(c_char_p))]
 
-libpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       'darknet/libdarknet.so')
-lib = CDLL(libpath, RTLD_GLOBAL)
-lib.network_width.argtypes = [c_void_p]
-lib.network_width.restype = c_int
-lib.network_height.argtypes = [c_void_p]
-lib.network_height.restype = c_int
 
+# wrap darknet functions
 predict = lib.network_predict
 predict.argtypes = [c_void_p, POINTER(c_float)]
 predict.restype = POINTER(c_float)
@@ -177,6 +184,7 @@ def detect(net, meta, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
         free_image(im)
     free_detections(dets, num)
     return res
+
 
 if __name__ == "__main__":
     import cv2
