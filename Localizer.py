@@ -3,7 +3,6 @@
 
 import darknet
 from pylorenzmie.theory.Instrument import Instrument
-import json
 
 
 class Localizer(object):
@@ -58,9 +57,7 @@ class Localizer(object):
 
     def predict(self,
                 img_list=[],
-                thresh=0.5,
-                save_to_json=False,
-                predictions_path='yolo_predictions.json'):
+                thresh=0.5):
         '''
         input:
         img_list: list of images (ie cv2.imread('image.png'))
@@ -84,10 +81,6 @@ class Localizer(object):
                 (label, conf, bbox) = pred
                 imagepreds.append({'conf': conf, 'bbox': bbox})
             predictions.append(imagepreds)
-
-        if save_to_json:
-            with open(predictions_path, 'w') as outfile:
-                json.dump(predictions, outfile)
         return predictions
 
 
@@ -102,8 +95,7 @@ if __name__ == '__main__':
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
     pred_path = 'examples/test_yolo_pred.json'
-    detection = localizer.predict(
-        img_list=[test_img], save_to_json=True, predictions_path=pred_path)
+    detection = localizer.predict(img_list=[test_img])
     example = detection[0]
     for holo in example:
         (x, y, w, h) = holo['bbox']

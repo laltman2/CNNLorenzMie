@@ -1,7 +1,5 @@
 import numpy as np
-import json, keras
-from matplotlib import pyplot as plt
-from PIL import Image
+import keras
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument
 import tensorflow as tf
@@ -148,7 +146,7 @@ class Estimator(object):
         self._model = loaded
         return self
 
-    def predict(self, img_names_path=None, img_list=[], save_to_json=False, predictions_path='predictions.json'):
+    def predict(self, img_names_path=None, img_list=[]):
         crop_img = img_list
         if not img_names_path is None:
             with open(img_names_path, 'r') as f:
@@ -177,21 +175,17 @@ class Estimator(object):
         asave = [item for sublist in a_pred.tolist() for item in sublist]
         nsave = [item for sublist in n_pred.tolist() for item in sublist]
 
-    
         data = {'z_p': zsave, 'a_p': asave, 'n_p': nsave}
 
-        if save_to_json:
-            with open(predictions_path, 'w') as outfile:
-                json.dump(data, outfile)
         return data
 
 
 if __name__ == '__main__':
+    import cv2, json
     keras_model_path = 'keras_models/predict_stamp_auto.h5'
     with open('keras_models/predict_stamp_auto.json') as f:
         config_json = json.load(f)
     img_path = 'examples/test_image_crop_201.png'
-    import cv2
     img = cv2.imread(img_path)
     estimator = Estimator(model_path=keras_model_path, config_file=config_json)
     data = estimator.predict(img_list = [img])
