@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
     image = cv2.imread('examples/test_image_large.png')
 
-    for n in range(2):
+    for n in range(10):
         start = time.time()
         r = detect(net, meta, image)
         print(time.time() - start)
