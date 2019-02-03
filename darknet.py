@@ -3,17 +3,20 @@
 
 from ctypes import (CDLL, RTLD_GLOBAL, POINTER, pointer, Structure,
                     c_void_p, c_char_p, c_int, c_float)
+import numpy as np
 import os
 from wurlitzer import pipes
 import logging
 
 logging.basicConfig()
 logger = logging.getLogger('darknet')
+logger.setLevel(logging.INFO)
 
 # load libdarknet.so
 
 package_dir = os.path.dirname(os.path.realpath(__file__))
 libpath = os.path.join(package_dir, 'darknet', 'libdarknet.so')
+
 lib = CDLL(libpath, RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
@@ -160,14 +163,16 @@ def array_to_image(arr):
     c_image: IMAGE
         image data formatted for darknet
     '''
-    arr = arr.transpose(2, 0, 1)
-    c = arr.shape[0]
-    h = arr.shape[1]
-    w = arr.shape[2]
-    arr = (arr / 255.0).flatten()
-    data = (c_float * len(arr))()
-    data[:] = arr
-    c_image = IMAGE(w, h, c, data)
+    arr = arr.transpose(2, 0, 1)/255.
+    c_image = IMAGE()
+    c_image.c = arr.shape[0]
+    c_image.h = arr.shape[1]
+    c_image.w = arr.shape[2]
+    arr = arr.astype(np.float32).flatten()
+    c_image.data = np.ctypeslib.as_ctypes(arr)
+    # data = (c_float * len(arr))()
+    # data[:] = arr
+    # c_image = IMAGE(w, h, c, data)
     return c_image
 
 
@@ -227,7 +232,7 @@ if __name__ == "__main__":
 
     image = cv2.imread('examples/test_image_large.png')
 
-    for n in range(5):
+    for n in range(2):
         start = time.time()
         r = detect(net, meta, image)
         print(time.time() - start)
