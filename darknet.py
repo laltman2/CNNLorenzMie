@@ -82,7 +82,6 @@ merge_features.argtypes = [POINTER(FEATURE), c_int, c_int, c_float]
 free_features = lib.free_detections
 free_features.argtypes = [POINTER(FEATURE), c_int]
 
-
 '''
 load_image = lib.load_image_color
 load_image.argtypes = [c_char_p, c_int, c_int]
@@ -150,27 +149,6 @@ def instantiate(config, weights, metadata):
     return net, meta
 
 
-def array_to_image(arr):
-    '''Convert numpy ndarray to darknet image
-
-    Inputs
-    ------
-    arr: numpy.ndarray
-        image to analyze
-
-    Outputs
-    -------
-    c_image: IMAGE
-        image data formatted for darknet
-    '''
-    arr = arr.transpose(2, 0, 1)/255.
-    c_image = IMAGE()
-    c_image.c, c_image.h, c_image.w = arr.shape
-    arr = arr.astype(c_float).flatten()
-    c_image.data = np.ctypeslib.as_ctypes(arr)
-    return c_image
-
-
 def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
     '''Detect features in an image
 
@@ -193,7 +171,16 @@ def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
         bounding box: [x, y, w, h]
     '''
 
-    c_image = array_to_image(image)
+    # convert numpy.ndarray to C image
+    image = image.transpose(2, 0, 1)/255.
+    c_image = IMAGE()
+    c_image.c = image.shape[0]
+    c_image.h = image.shape[1]
+    c_image.w = image.shape[2]
+    image = image.astype(np.float32).flatten()
+    c_image.data = np.ctypeslib.as_ctypes(image)
+
+    # analyze image
     analyze_image(network, c_image)
     nfeatures = c_int(0)
     pnfeatures = pointer(nfeatures)
@@ -203,6 +190,7 @@ def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
     nfeatures = pnfeatures[0]
     merge_features(features, nfeatures, metadata.classes, nms)
 
+    # transfer features from C to python
     res = []
     for j in range(nfeatures):
         for i in range(metadata.classes):
@@ -211,7 +199,6 @@ def detect(network, metadata, image, thresh=0.5, hier_thresh=0.5, nms=0.45):
                 res.append((metadata.names[i],
                             features[j].prob[i],
                             (b.x, b.y, b.w, b.h)))
-    # res = sorted(res, key=lambda x: -x[1])
     free_features(features, nfeatures)
     return res
 
