@@ -165,14 +165,9 @@ def array_to_image(arr):
     '''
     arr = arr.transpose(2, 0, 1)/255.
     c_image = IMAGE()
-    c_image.c = arr.shape[0]
-    c_image.h = arr.shape[1]
-    c_image.w = arr.shape[2]
-    arr = arr.astype(np.float32).flatten()
+    c_image.c, c_image.h, c_image.w = arr.shape
+    arr = arr.astype(c_float).flatten()
     c_image.data = np.ctypeslib.as_ctypes(arr)
-    # data = (c_float * len(arr))()
-    # data[:] = arr
-    # c_image = IMAGE(w, h, c, data)
     return c_image
 
 
