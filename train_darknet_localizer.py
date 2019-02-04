@@ -29,7 +29,7 @@ file_header = os.path.abspath(config['directory'])
 numtrain = config['nframes_train']
 numtest = config['nframes_test']
 
-numclasses = 1
+numclasses = 1 #single class version (for now)
 #Make test/train data
 mtd_config = config.copy()
 train_dir = file_header + '/train'
@@ -92,7 +92,7 @@ with open(cfgfile, 'w') as fw:
 
 save_json = save_header+'.json'
 with open(save_json, 'w') as f:
-    json.dump(save_conf, f)
+    json.dump(config, f)
 print('Saved config')
 
 #Train
