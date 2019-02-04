@@ -25,7 +25,7 @@ Steps to follow:
 '''
 
 
-configfile='train_config.json'
+configfile='keras_train_config.json'
 with open(configfile, 'r') as f:
     config = json.load(f)
 
