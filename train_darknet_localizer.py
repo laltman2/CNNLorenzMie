@@ -85,11 +85,13 @@ subdivisions = config['training']['subdivisions']
 cfg_lines[2] = 'batch={}\n'.format(batch)
 cfg_lines[3] = 'subdivisions={}\n'.format(subdivisions)
 
-numfilters = (numclasses+5)*3
+
 if istiny:
-    cfg_lines[126] = cfg_lines[170] = 'classes={}\n'.format(numclasses)
-    cfg_lines[134] = cfg_lines[176] = 'filters={}\n'.format(numfilters)
+    numfilters = (numclasses+5)*3
+    cfg_lines[134] = cfg_lines[176] = 'classes={}\n'.format(numclasses)
+    cfg_lines[126] = cfg_lines[170] = 'filters={}\n'.format(numfilters)
 else:
+    numfilters = (numclasses+5)*3
     cfg_lines[609] = cfg_lines[695] = cfg_lines[782] = 'classes={}\n'.format(numclasses)
     cfg_lines[602] = cfg_lines[688] = cfg_lines[775] = 'filters={}\n'.format(numfilters)
 

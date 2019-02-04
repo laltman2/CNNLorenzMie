@@ -81,7 +81,6 @@ def make_sample(config):
         nspheres = nrange[0]
     else:
         nspheres = np.random.randint(nrange[0], nrange[1])
-    print('nspheres=',nspheres)
     sample = []
     for n in range(nspheres):
         np.random.seed()
@@ -131,7 +130,6 @@ def mtd(config={}):
     for n in range(config['nframes']):  # for each frame ...
         print(imgname.format(n))
         sample = make_sample(config)   # ... get params for particles
-        print('made sample')
         # ... calculate hologram
         frame = np.random.normal(0, config['noise'], shape)
         if len(sample) > 0:
