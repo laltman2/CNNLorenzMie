@@ -15,6 +15,8 @@ Steps to follow:
 (make sure you have available disk space)
 -Run this file with python or nohup
 (dataset generation + training will take at least few hours)
+
+Weights files will save to cfg_darknet/backup every 100 epochs, then, after 1000, every 1000 epochs
 '''
 
 
@@ -30,6 +32,7 @@ numtrain = config['nframes_train']
 numtest = config['nframes_test']
 
 numclasses = 1 #single class version (for now)
+
 #Make test/train data
 mtd_config = config.copy()
 train_dir = file_header + '/train'
@@ -37,10 +40,12 @@ test_dir = file_header + '/test'
 
 mtd_config['directory'] = train_dir
 mtd_config['nframes'] = numtrain
+print('Training set')
 mtd(config = mtd_config)
 
 mtd_config['directory'] = test_dir
 mtd_config['nframes'] = numtest
+print('Validation set')
 mtd(config = mtd_config)
 
 #prepare config files
@@ -53,7 +58,8 @@ namesfile = save_header + '.names'
 names = config['particle']['name']
 with open(namesfile, 'w') as fw:
     fw.write(names)
-
+print('Created names file')
+    
 datafile = save_header+'.data'
 data = ('classes= {} \n'.format(numclasses) +
         'train= {}/filenames.txt \n'.format(train_dir) +
@@ -62,7 +68,8 @@ data = ('classes= {} \n'.format(numclasses) +
         'backup= {}'.format(backup_dir))
 with open(datafile, 'w') as fw:
     fw.write(data)
-
+print('Created data file')
+    
 cfgfile = save_header + '.cfg'
 istiny = config['training']['tiny']
 if istiny:
@@ -88,17 +95,16 @@ else:
 
 with open(cfgfile, 'w') as fw:
     fw.writelines(cfg_lines)
-
+print('Created config file')
 
 save_json = save_header+'.json'
 with open(save_json, 'w') as f:
     json.dump(config, f)
-print('Saved config')
+print('Saved training config')
 
 #Train
 weightsfile = config['training']['weightsfile']
 cmd = 'darknet/darknet detector train {} {} {}'.format(datafile, cfgfile, weightsfile)
-print(cmd)
 os.system(cmd)
 
 if config['delete_files_after_training']:
