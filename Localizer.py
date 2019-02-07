@@ -25,9 +25,9 @@ class Localizer(object):
     def __init__(self, configuration='holo', threshold=0.5):
         dir = 'cfg_darknet'
         self.configuration = configuration
-        conf = os.path.join(dir, self.configuration + '.conf')
+        conf = os.path.join(dir, self.configuration + '.cfg')
         weights = os.path.join(dir, self.configuration + '.weights')
-        metadata = os.path.join(dir, self.configuration + '.metadata')
+        metadata = os.path.join(dir, self.configuration + '.data')
         self.net, self.meta = darknet.instantiate(conf,
                                                   weights,
                                                   metadata)
@@ -69,6 +69,7 @@ if __name__ == '__main__':
     import cv2
 
     localizer = Localizer('holo')
+    print('done')
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
     detection = localizer.predict(img_list=[test_img])
