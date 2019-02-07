@@ -22,11 +22,11 @@ class Localizer(object):
     predict(img_list)
     '''
 
-    def __init__(self, configuration='holo', threshold=0.5):
+    def __init__(self, configuration='holo', weights='', threshold=0.5):
         dir = 'cfg_darknet'
         self.configuration = configuration
         conf = os.path.join(dir, self.configuration + '.cfg')
-        weights = os.path.join(dir, self.configuration + '.weights')
+        weights = os.path.join(dir, self.configuration + weights + '.weights')
         metadata = os.path.join(dir, self.configuration + '.data')
         self.net, self.meta = darknet.instantiate(conf,
                                                   weights,
