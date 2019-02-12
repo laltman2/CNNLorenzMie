@@ -15,7 +15,6 @@ def nodoubles(preds_list=[], tol=10):
     num_img = len(preds_list)
     preds_copy = preds_list.copy()
     for num in range(num_img):
-        print(num)
         img_pred = preds_copy[num]
         numpred = len(img_pred)
         for img1, img2 in combinations(img_pred, 2):
