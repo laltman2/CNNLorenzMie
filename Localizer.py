@@ -22,7 +22,7 @@ class Localizer(object):
     predict(img_list)
     '''
 
-    def __init__(self, configuration='holo', weights='', threshold=0.5):
+    def __init__(self, configuration='holo', weights='', threshold=0.3, nms=0.45):
         dir = 'cfg_darknet'
         self.configuration = configuration
         conf = os.path.join(dir, self.configuration + '.cfg')
@@ -32,6 +32,7 @@ class Localizer(object):
                                                   weights,
                                                   metadata)
         self.threshold = threshold
+        self.nms = nms
 
     def predict(self, img_list=[]):
         '''Detect and localize features in an image
@@ -56,11 +57,11 @@ class Localizer(object):
         predictions = []
         for image in img_list:
             yolopred = darknet.detect(
-                self.net, self.meta, image, self.threshold)
+                self.net, self.meta, image, self.threshold, self.nms)
             imagepreds = []
             for pred in yolopred:
                 (label, conf, bbox) = pred
-                imagepreds.append({'conf': conf, 'bbox': bbox})
+                imagepreds.append({'label': label, 'conf': conf, 'bbox': bbox})
             predictions.append(imagepreds)
         return predictions
 
@@ -68,7 +69,7 @@ class Localizer(object):
 if __name__ == '__main__':
     import cv2
 
-    localizer = Localizer('holo')
+    localizer = Localizer('holo', weights='_55000')
     print('done')
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)

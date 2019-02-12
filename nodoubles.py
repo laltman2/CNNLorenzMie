@@ -16,7 +16,6 @@ def nodoubles(preds_list=[], tol=5):
     preds_copy = preds_list.copy()
     for num in range(num_img):
         img_pred = preds_copy[num]
-        numpred = len(img_pred)
         for img1, img2 in combinations(img_pred, 2):
             x1, y1 = img1['bbox'][:2]
             x2, y2 = img2['bbox'][:2]
@@ -31,7 +30,7 @@ if __name__=='__main__':
     preds_file = 'examples/test_yolo_pred.json'
 
     with open(preds_file, 'r') as f:
-        xypreds = json.load(f)
+        xy_preds = json.load(f)
     
     print('Before:{}'.format(xy_preds))
     #the sample predictions were not close
