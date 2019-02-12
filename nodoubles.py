@@ -6,12 +6,12 @@ filter for use with localizer
 
 removes predictions within a certain distance (tol) of each other
 
-input: list of list of dicts (output of Localizer.predict()
+input: list of list of dicts (output of Localizer.predict)
 output: list of list of dicts, with doubles removed
 '''
 
 
-def nodoubles(preds_list=[], tol=10):
+def nodoubles(preds_list=[], tol=5):
     num_img = len(preds_list)
     preds_copy = preds_list.copy()
     for num in range(num_img):
@@ -25,12 +25,15 @@ def nodoubles(preds_list=[], tol=10):
                 img_pred.remove(img2)
     return preds_copy
 
+
 if __name__=='__main__':
     import json
     preds_file = 'examples/test_yolo_pred.json'
 
     with open(preds_file, 'r') as f:
-        data = json.load(f)
-    xy_preds = data
+        xypreds = json.load(f)
+    
     print('Before:{}'.format(xy_preds))
+    #the sample predictions were not close
+    #using a ridiculous tolerance for demonstration purposes
     print('After:{}'.format(nodoubles(xy_preds, tol=1000)))
