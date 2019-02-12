@@ -20,7 +20,7 @@ def nodoubles(preds_list=[], tol=5):
             x1, y1 = img1['bbox'][:2]
             x2, y2 = img2['bbox'][:2]
             dist = np.sqrt((x1-x2)**2 + (y1-y2)**2)
-            if dist<tol:
+            if dist<tol and (img1 in img_pred) and (img2 in img_pred):
                 img_pred.remove(img2)
     return preds_copy
 
