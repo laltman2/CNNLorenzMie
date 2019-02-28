@@ -6,6 +6,7 @@ from pylorenzmie.theory.Instrument import Instrument, coordinates
 from Estimator import Estimator
 from Localizer import Localizer
 from crop_feature import crop_feature
+from nodoubles import nodoubles
 from pylorenzmie.theory.Feature import Feature
 
 
@@ -54,8 +55,6 @@ class EndtoEnd(object):
             self.localizer = Localizer()
         else:
             self.localizer = localizer
-        if estimator.instrument != localizer.instrument:
-            warnings.warn("Warning: estimator and localizer have different instruments")
         self.instrument = estimator.instrument
 
     @property
@@ -90,7 +89,7 @@ class EndtoEnd(object):
     def localizer(self, localizer):
         self._localizer = localizer
 
-    def predict(self, img_list=[]):
+    def predict(self, img_list=[], doubles_tol=0):
         '''
         output:
         predictions: list of features
@@ -98,6 +97,7 @@ class EndtoEnd(object):
         '''
         crop_px = self.estimator.pixels
         yolo_predictions = self.localizer.predict(img_list = img_list)
+        yolo_predictions = nodoubles(yolo_predictions, tol = doubles_tol)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
         out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
@@ -138,10 +138,7 @@ if __name__ == '__main__':
     estimator = Estimator(model_path=keras_model_path, config_file=kconfig)
 
     
-    config_path =  'cfg_darknet/holo.cfg'
-    weight_path ='cfg_darknet/holo_55000.weights'
-    meta_path = 'cfg_darknet/holo.data'
-    localizer = Localizer(config_path = config_path, weight_path = weight_path, meta_path = meta_path)
+    localizer = Localizer(configuration = 'holo')
 
     img_file = 'examples/test_image_large.png'
     img = cv2.imread(img_file)
