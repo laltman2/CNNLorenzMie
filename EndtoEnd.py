@@ -119,6 +119,7 @@ class EndtoEnd(object):
                 feature.model.particle.n_p = npop.pop(0)
                 feature.model.coordinates = feature.coordinates
                 feature.instrument = self.instrument
+                feature.model.instrument = self.instrument
                 index+=1
         return out_features
             
@@ -140,6 +141,15 @@ if __name__ == '__main__':
     
     localizer = Localizer(configuration = 'holo')
 
+    '''
+    img_file = 'datasets/performance/eval/images/image0000.png'
+    img_json = 'datasets/performance/eval/params/image0000.json'
+    with open(img_json, 'r') as f:
+        trueparams = json.load(f)
+    print('Ground truth')
+    print(trueparams)
+    '''
+    
     img_file = 'examples/test_image_large.png'
     img = cv2.imread(img_file)
     img_list = [img]
