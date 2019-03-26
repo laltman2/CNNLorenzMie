@@ -118,7 +118,6 @@ class EndtoEnd(object):
                 feature.model.particle.a_p = apop.pop(0)
                 feature.model.particle.n_p = npop.pop(0)
                 feature.model.coordinates = feature.coordinates
-                feature.instrument = self.instrument
                 feature.model.instrument = self.instrument
                 index+=1
         return out_features
@@ -157,7 +156,6 @@ if __name__ == '__main__':
     e2e = EndtoEnd(estimator=estimator, localizer=localizer)
     features = e2e.predict(img_list = img_list)
     example = features[0][0]
-
 
     print('Example feature')
     print(example.model.particle)
