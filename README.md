@@ -3,7 +3,7 @@ Localization and estimation of Lorenz-Mie holograms of colloidal spheres using c
 
 
 # Setup:
-0. Make a fresh environment using conda or venv (Strongly recommended) Get required packages (requirements.txt)
+0. Make a fresh environment using conda or venv. (Strongly recommended) Get required packages from `requirements.txt`.
 
 1. Clone darknet and pylorenzmie repositories (these are the linked submodules but you need to clone them separately)
 
