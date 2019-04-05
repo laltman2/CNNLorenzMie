@@ -23,7 +23,7 @@ class Localizer(object):
     '''
 
     def __init__(self, configuration='holo', weights='', threshold=0.3, nms=0.45):
-        dir = 'cfg_darknet'
+        dir = os.path.dirname(os.path.abspath(__file__)) + '/cfg_darknet'
         self.configuration = configuration
         conf = os.path.join(dir, self.configuration + '.cfg')
         weights = os.path.join(dir, self.configuration + weights + '.weights')

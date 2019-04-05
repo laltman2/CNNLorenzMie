@@ -1,0 +1,18 @@
+###CNNLorenzMie Required Packages###
+
+(conda/venv strongly recommended)
+
+Python 3
+
+darknet (https://github.com/pjreddie/darknet.git)
+pylorenzmie (https://github.com/davidgrier/pylorenzmie.git)
+numpy
+matplotlib
+opencv
+tensorflow
+keras
+wurlitzer
+
+(For pylorenzmie)
+lmfit
+future
