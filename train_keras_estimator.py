@@ -1,5 +1,5 @@
 from __future__ import print_function
-import keras, json, shutil, os, cv2
+import keras, json, shutil, os, cv2, ast
 from keras import regularizers
 from keras.models import Sequential, Model, load_model
 from keras.layers import Dense, Dropout, Flatten
@@ -96,6 +96,39 @@ def makedata(settype='train/', nframes=10):
     params_list = [zlist, alist, nlist]
     return img_list, params_list
 
+def loaddata(settype='train/', nframes=10):
+    directory = os.path.expanduser(config['directory'])+settype
+    for dir in ('images', 'params'):
+        if not os.path.exists(os.path.join(directory, dir)):
+            print('No such directory, check your config file')
+            break
+    imgname = os.path.join(directory, 'images', 'image{:04d}.' + imgtype)
+    jsonname = os.path.join(directory, 'params', 'image{:04d}.json')
+    img_list = []
+    zlist = []
+    alist = []
+    nlist = []
+    for n in range(nframes):  # for each frame ...
+        with open(jsonname.format(n), 'r') as fp:
+            param_string = json.load(fp)[0]
+            params = ast.literal_eval(param_string)
+        zlist.append(params['z_p'])
+        alist.append(params['a_p'])
+        nlist.append(params['n_p'])
+        localim = cv2.imread(imgname.format(n))[:,:,0]
+        img_list.append(localim)
+    img_list = np.array(img_list).astype('float32')
+    img_list *= 1./255
+    zlist = np.array(zlist).astype('float32')
+    zlist = rescale(zmin, zmax, zlist)
+    alist = np.array(alist).astype('float32')
+    alist = rescale(amin, amax, alist)
+    nlist = np.array(nlist).astype('float32')
+    nlist = rescale(nmin, nmax, nlist)
+    params_list = [zlist, alist, nlist]
+    return img_list, params_list
+
+    
 
 #File names/numbers
 file_header = config['directory']
@@ -103,12 +136,25 @@ numtrain = config['nframes_train']
 numtest = config['nframes_test']
 
 
+'''
+##Creating##
 print('Training set')
 img_train, params_train = makedata(settype='train/', nframes = numtrain)
 z_train, a_train, n_train = params_train
 print('Validation set')
 img_test, params_test = makedata(settype='test/', nframes = numtest)
 z_test, a_test, n_test = params_test
+'''
+
+##Loading**
+print('Training set')
+img_train, params_train = loaddata(settype='train/', nframes = numtrain)
+z_train, a_train, n_train = params_train
+print('Validation set')
+img_test, params_test = loaddata(settype='test/', nframes = numtest)
+z_test, a_test, n_test = params_test
+
+
 
 
 #Image dimensions
@@ -136,19 +182,19 @@ def multioutput_model():
     x = MaxPooling2D(pool_size = (4,4))(x)
     x = Flatten()(x)
     reg = 0.01
-    x = Dense(20, activation='relu', kernel_regularizer = regularizers.l2(reg))(x)
+    x = Dense(50, activation='relu', kernel_regularizer = regularizers.l2(reg))(x)
     model_outputs = list()
     out_names = ['z', 'a', 'n']
-    drop_rates = [0.01, 0.01, 0.2]
+    drop_rates = [0.005, 0.005, 0.1]
     regularizer_rates = [0.3, 0.3, 0.3]
-    dense_nodes = [40, 20, 100]
+    dense_nodes = [100, 100, 300]
     loss_weights = []
     for i in range(3):
         out_name = out_names[i]
-        #drop_rate = drop_rates[i]
-        #reg = regularizer_rates[i]
+        drop_rate = drop_rates[i]
+        reg = regularizer_rates[i]
         dense_node = dense_nodes[i]
-        drop_rate = 0.001
+        #drop_rate = 0.001
         local_output= x
         local_output = Dense(dense_node, activation='relu', kernel_regularizer = regularizers.l2(reg))(local_output)
         local_output = Dropout(drop_rate)(local_output)
@@ -237,6 +283,6 @@ with open(save_json, 'w') as f:
     json.dump(save_conf, f)
 print('Saved config')
 
-if config['delete_files_after_training']:
-    head_dir = os.path.expanduser(config['directory'])
-    shutil.rmtree(head_dir)
+#if config['delete_files_after_training']:
+#    head_dir = os.path.expanduser(config['directory'])
+#    shutil.rmtree(head_dir)
