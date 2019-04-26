@@ -1,0 +1,28 @@
+{
+    "instrument": {
+	"wavelength": 0.447,
+	"magnification": 0.048,
+	"n_m": 1.340
+    },
+    "particle": {
+	"a_p": [0.2, 5.0],
+	"n_p": [1.38, 1.7],
+	"k_p": [0, 0],
+	"x_p": [90, 110],
+	"y_p": [90, 110],
+	"z_p": [50, 600]
+    },
+    "training": {
+	"epochs": 10000,
+	"batchsize": 64,
+	"savefile": "keras_models/predict_stamp_newscale"
+    },
+    "directory": "./datasets/estimator_newscale/",
+    "imgtype": "png",
+    "shape": [201, 201],
+    "noise": 0.05,
+    "nframes_train": 10000,
+    "nframes_test": 1000,
+    "nframes_eval": 100,
+    "delete_files_after_training": false
+}
