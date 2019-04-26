@@ -211,11 +211,10 @@ if __name__ == "__main__":
     weights = 'cfg_darknet/holo_55000.weights'
     metadata = 'cfg_darknet/holo.data'
     net, meta = instantiate(config, weights, metadata)
-
+    
+    print('instantiated')
     image = cv2.imread('examples/test_image_large.png')
 
-    for n in range(10):
-        start = time.time()
-        r = detect(net, meta, image)
-        print(time.time() - start)
+    print('detecting')
+    r = detect(net, meta, image)
     print(r)

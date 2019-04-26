@@ -15,9 +15,9 @@
     "training": {
 	"epochs": 1000,
 	"batchsize": 64,
-	"savefile": "keras_models/predict_stamp_auto"
+	"savefile": "../keras_models/predict_stamp_auto"
     },
-    "directory": "./datasets/",
+    "directory": "../datasets/",
     "imgtype": "png",
     "shape": [201, 201],
     "noise": 0.05,

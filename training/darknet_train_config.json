@@ -18,10 +18,10 @@
 	"batch": 64,
 	"subdivisions": 32,
 	"tiny": false,
-	"weightsfile": "cfg_darknet/backup/darknet53.conv.74",
-	"savefile": "cfg_darknet/yolotest"
+	"weightsfile": "../cfg_darknet/backup/darknet53.conv.74",
+	"savefile": "../cfg_darknet/yolotest"
     },
-    "directory": "./datasets/",
+    "directory": "../datasets/",
     "imgtype": "png",
     "shape": [1024, 1280],
     "noise": 0.05,
