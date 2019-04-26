@@ -68,15 +68,23 @@ class Localizer(object):
 
 if __name__ == '__main__':
     import cv2
+    from matplotlib import pyplot as plt
+    from matplotlib.patches import Rectangle
 
-    localizer = Localizer('holo', weights='_55000')
+    localizer = Localizer('yolonew', weights='_30000')
     print('done')
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
     detection = localizer.predict(img_list=[test_img])
     example = detection[0]
+    fig, ax = plt.subplots()
+    ax.imshow(test_img, cmap='gray')
     for feature in example:
         (x, y, w, h) = feature['bbox']
         conf = feature['conf']
         msg = 'Feature at ({0:.1f}, {1:.1f}) with {2:.2f} confidence'
         print(msg.format(x, y, conf))
+        print(w*2, h*2)
+        test_rect = Rectangle(xy=(x - w/2, y - h/2), width=w, height=h, fill=False, linewidth=3, edgecolor='r')
+        ax.add_patch(test_rect)
+    plt.show()

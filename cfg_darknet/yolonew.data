@@ -1,0 +1,5 @@
+classes= 1 
+train= /home/group/endtoend/OOe2e/datasets/yolonew/train/filenames.txt 
+test= /home/group/endtoend/OOe2e/datasets/yolonew/test/filenames.txt 
+names= /home/group/endtoend/OOe2e/cfg_darknet/yolonew.names 
+backup= /home/group/endtoend/OOe2e/cfg_darknet/backup
