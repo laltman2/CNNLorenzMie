@@ -6,7 +6,7 @@ from pylorenzmie.theory.Instrument import Instrument, coordinates
 from Estimator_scale import Estimator
 from Localizer import Localizer
 from crop_feature_extent2 import crop_feature
-from nodoubles import nodoubles
+from filters.nodoubles import nodoubles
 from pylorenzmie.theory.Feature import Feature
 
 
