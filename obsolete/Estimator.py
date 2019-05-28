@@ -103,7 +103,7 @@ class Estimator(object):
             loaded = keras.models.load_model(model_path)
             loaded.summary()
             self.model= loaded
-            (a,b,c,d) = loaded.input_shape[0]
+            (a,b,c,d) = loaded.input_shape
             pix = (b,c)
         self.pixels = pix
 
@@ -146,7 +146,7 @@ class Estimator(object):
         self._model = loaded
         return self
 
-    def predict(self, img_names_path=None, img_list=[], scale_list=[]):
+    def predict(self, img_names_path=None, img_list=[]):
         crop_img = img_list
         if not img_names_path is None:
             with open(img_names_path, 'r') as f:
@@ -160,10 +160,9 @@ class Estimator(object):
             crop_img = crop_img[:,:,:,0]
         crop_img, _ = format_image(crop_img, self.pixels)
         crop_img = crop_img/255.
-        scale_list = np.array(scale_list)
 
         stamp_model = self.model
-        char = stamp_model.predict([crop_img, scale_list])
+        char = stamp_model.predict(crop_img)
 
         zmin, zmax = self.params_range['z_p']
         amin, amax = self.params_range['a_p']
@@ -183,13 +182,13 @@ class Estimator(object):
 
 if __name__ == '__main__':
     import cv2, json
-    keras_model_path = 'keras_models/predict_stamp_newscale.h5'
-    with open('keras_models/predict_stamp_newscale.json') as f:
+    keras_model_path = 'keras_models/predict_stamp_auto.h5'
+    with open('keras_models/predict_stamp_auto.json') as f:
         config_json = json.load(f)
     img_path = 'examples/test_image_crop_201.png'
     img = cv2.imread(img_path)
     estimator = Estimator(model_path=keras_model_path, config_file=config_json)
-    data = estimator.predict(img_list = [img], scale_list=[1])
+    data = estimator.predict(img_list = [img])
     example_z = round(data['z_p'][0],1)
     example_a = round(data['a_p'][0],3)
     example_n = round(data['n_p'][0],3)

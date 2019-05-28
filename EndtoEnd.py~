@@ -3,9 +3,9 @@ import keras
 import warnings
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
-from Estimator import Estimator
+from Estimator_scale import Estimator
 from Localizer import Localizer
-from crop_feature import crop_feature
+from crop_feature_extent2 import crop_feature
 from filters.nodoubles import nodoubles
 from pylorenzmie.theory.Feature import Feature
 

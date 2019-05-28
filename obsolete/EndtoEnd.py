@@ -100,9 +100,11 @@ class EndtoEnd(object):
         yolo_predictions = nodoubles(yolo_predictions, tol = doubles_tol)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
-        out_features, est_images, scales = crop_feature(img_list = img_list, xy_preds = yolo_predictions, new_shape = crop_px)
+        out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
         structure = list(map(len, out_features))
-        char_predictions = self.estimator.predict(img_list = est_images, scale_list = scales)
+        flat_features = [item for sublist in out_features for item in sublist]
+        imlist = [feat.data*100 for feat in flat_features]
+        char_predictions = self.estimator.predict(img_list = imlist)
         zpop = char_predictions['z_p']
         apop = char_predictions['a_p']
         npop = char_predictions['n_p']
@@ -128,7 +130,7 @@ if __name__ == '__main__':
     from matplotlib import pyplot as plt
 
 
-    keras_head_path = 'keras_models/predict_stamp_newscale'
+    keras_head_path = 'keras_models/predict_stamp_auto'
     keras_model_path = keras_head_path+'.h5'
     keras_config_path = keras_head_path+'.json'
     with open(keras_config_path, 'r') as f:
@@ -136,7 +138,7 @@ if __name__ == '__main__':
     estimator = Estimator(model_path=keras_model_path, config_file=kconfig)
 
     
-    localizer = Localizer(configuration = 'yolonew', weights='_100000')
+    localizer = Localizer(configuration = 'holo')
 
     '''
     img_file = 'datasets/performance/eval/images/image0000.png'
@@ -157,9 +159,7 @@ if __name__ == '__main__':
 
     print('Example feature')
     print(example.model.particle)
-    px = int(np.sqrt(example.data.size))
-    pix = (px,px)
-    cpix = estimator.pixels
+    pix = estimator.pixels
     
     h = example.model.hologram()
     fig, (ax1, ax2) = plt.subplots(1,2)

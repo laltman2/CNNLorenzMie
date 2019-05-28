@@ -3,10 +3,10 @@ import keras
 import warnings
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
-from Estimator import Estimator
+from Estimator_scale import Estimator
 from Localizer import Localizer
-from crop_feature import crop_feature
-from filters.nodoubles import nodoubles
+from crop_feature_extent import crop_feature
+from nodoubles import nodoubles
 from pylorenzmie.theory.Feature import Feature
 
 
@@ -100,8 +100,27 @@ class EndtoEnd(object):
         yolo_predictions = nodoubles(yolo_predictions, tol = doubles_tol)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
-        out_features, est_images, scales = crop_feature(img_list = img_list, xy_preds = yolo_predictions, new_shape = crop_px)
+        out_features = crop_feature(img_list = img_list, xy_preds = yolo_predictions, old_shape = old_shape, new_shape = crop_px)
         structure = list(map(len, out_features))
+        flat_features = [item for sublist in out_features for item in sublist]
+        imlist = [feat.data*100 for feat in flat_features]
+        est_images = []
+        scales = []
+        for im in imlist:
+            ext = int(np.sqrt(im.shape[0]))
+            inp = crop_px[0]
+            im = im.reshape([ext, ext])
+            print(im.shape)
+            if ext == inp:
+                scale=1
+                input_img = im
+            else:
+                scale = int(ext//inp)
+                print(scale)
+                input_img = im[::scale, ::scale]
+            print(input_img.shape)
+            est_images.append(input_img)
+            scales.append(scale)
         char_predictions = self.estimator.predict(img_list = est_images, scale_list = scales)
         zpop = char_predictions['z_p']
         apop = char_predictions['a_p']
