@@ -1,6 +1,8 @@
-import numpy, os, cv2
+import numpy as np
+import os, cv2
 from keras import backend as K
 from matplotlib import pyplot as plt
+from vmedian import vmedian
 
 '''
 pipeline for converting videos of experimental data to normalized images that are ready to feed into the models.
@@ -11,94 +13,86 @@ function normalize_image returns list of normalized frames (in addition to savin
 
 normalized images will be saved as 3-channel .png with the naming scheme:
 
-normalized_data/image0000.png
-normalized_data/image0001.png
+norm_images/image0000.png
+norm_images/image0001.png
 
 in order of frames
 '''
 
-# Function to extract frames 
-#https://www.geeksforgeeks.org/python-program-extract-frames-using-opencv/
-def FrameCapture(path): 
-      
-    # Path to video file 
-    vidObj = cv2.VideoCapture(path) 
-  
-    # Used as counter variable 
-    count = 0
 
-    # checks whether frames were extracted 
-    success = 1
 
-    img_list = []
-    while success: 
-        # vidObj object calls read 
-        # function extract frames 
+def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2):
+    #get first frame of background
+    vidObj = cv2.VideoCapture(bg_path)
+    success, img0 = vidObj.read()
+    img0 = img0[:,:,0]
+    if not success:
+        print('background video not found')
+        return
+    
+    #instantiate vmedian object
+    v = vmedian(order=order, dimensions=img0.shape)
+    v.add(img0)
+    while success:
         success, image = vidObj.read()
-        img_list.append(image)
-        count += 1
-
-    #remove the last (success=False) element of list
-    img_list = img_list[:-1]
-    return img_list
-
-
-
-def normalize_video(bg_path, vid_path, save_folder = './norm_images/'):
-    print('opening background video')
-    img_bkg = FrameCapture(bg_path)
-    print('{} frames'.format(len(img_bkg)))
-
-
-    print('computing background')
-    #Normalize
-    bg_img = numpy.zeros(img_bkg[0].shape)
-    for i in range(len(bg_img)):
-        for j in range(len(bg_img[0])):
-            pix_i = []
-            for file in img_bkg:
-                pix_i.append(file[i][j])
-            pixel = numpy.median(pix_i)
-            bg_img[i][j] = pixel
-
+        if success:
+            image = image[:,:,0]
+            v.add(image)
+    #get background once video is done
+    bg = v.get()
+    
     '''
-    bgim = Image.fromarray(numpy.uint8(bg_img))
-    bgim.save('background.png')
-    bgim.show()
-
-    plt.imshow(bg_img)
+    #save background image
+    bgimpath = save_folder + 'background.png'
+    cv2.imwrite(bgimpath, bg)
+    plt.imshow(bg, cmap='gray')
     plt.show()
     '''
 
-    print('opening measurement video')
-    img_measure = FrameCapture(vid_path)
-    print('{} frames'.format(len(img_measure)))
-    dark = min([frame.min() for frame in img_measure])
-    
-    
     print('normalizing and saving')
+
+    #make save folder if it doesn't exist
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
     
-    img_save = []
-    #background_val and max_val are for debugging
-    #background_val =[]
-    #max_val = []
-    for i in range(len(img_measure)):
-        testimg = img_measure[i][:]
-        numer =testimg - dark
-        denom = numpy.clip((bg_img-dark),1,255)
-        testimg = numpy.divide(numer, denom)*100.
-        testimg = numpy.clip(testimg, 0, 255)
-        #background_val.append(numpy.median(testimg))
-        #max_val.append(numpy.max(testimg))
-        img_save.append(testimg)
-        filename = os.path.dirname(save_folder) + '/image' + str(i).zfill(4) + '.png'
-        cv2.imwrite(filename, testimg)
-
-    #img_save =  numpy.array(img_save).astype('float32')
-    return img_save
+    
+    #get videocap object for measurement video
+    vidObj = cv2.VideoCapture(vid_path)
+    
+    #get dark count
+    samplecount=100 #how many frames to sample
+    subtract=5 #offset dark count
+    min_cand = []
+    for i in range(samplecount):
+        success, image = vidObj.read()
+        if not success:
+            print('not enough frames to sample')
+            return
+        else:
+            min_cand.append(image.min())
+    dark = min(min_cand) - subtract
+    
+    #load and normalize measurement video
+    img_return = []
+    success = 1
+    count=0
+    while success:
+        success, image = vidObj.read()
+        if success:
+            numer =image[:,:,0] - dark
+            denom = np.clip((bg-dark),1,255)
+            testimg = np.divide(numer, denom)*100.
+            testimg = np.clip(testimg, 0, 255)
+            img_return.append(testimg)
+            filename = os.path.dirname(save_folder) + '/image' + str(count).zfill(4) + '.png'
+            cv2.imwrite(filename, testimg)
+            print(filename, end='\r')
+            count+= 1
+    return img_return
 
 
 if __name__ == '__main__':
-    normalize_video('videos/vaterite_2_bkg.avi', 'videos/vaterite_2.avi')
+    dir = '/home/lauren/Desktop/birefringence/datasets/run1/'
+    bkgpath = dir+'vaterite_2_bkg.avi'
+    vidpath = dir+'vaterite_2.avi'
+    normalize_video(bkgpath, vidpath)
