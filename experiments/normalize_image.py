@@ -1,6 +1,6 @@
 import numpy as np
 import os, cv2
-from keras import backend as K
+#from cv2 import *
 from matplotlib import pyplot as plt
 from vmedian import vmedian
 
@@ -29,7 +29,8 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
     if not success:
         print('background video not found')
         return
-    
+
+    print('Opening and computing background')
     #instantiate vmedian object
     v = vmedian(order=order, dimensions=img0.shape)
     v.add(img0)
@@ -49,7 +50,7 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
     plt.show()
     '''
 
-    print('normalizing and saving')
+    print('Opening measurement video')
 
     #make save folder if it doesn't exist
     if not os.path.exists(save_folder):
@@ -58,24 +59,31 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
     
     #get videocap object for measurement video
     vidObj = cv2.VideoCapture(vid_path)
-    
+    nframes = int(vidObj.get(cv2.CAP_PROP_FRAME_COUNT))
+    print(nframes, 'frames')
+
+    print('Computing dark count')
     #get dark count
-    samplecount=100 #how many frames to sample
+    samplecount=100 #how many frames to sample (at random)
     subtract=5 #offset dark count
     min_cand = []
+    positions = np.random.choice(nframes, samplecount, replace=False) #get random frames to sample
     for i in range(samplecount):
+        vidObj.set(cv2.CAP_PROP_POS_FRAMES, positions[i])
         success, image = vidObj.read()
-        if not success:
-            print('not enough frames to sample')
-            return
-        else:
+        if success:
             min_cand.append(image.min())
+        else:
+            print('Something went wrong')
     dark = min(min_cand) - subtract
-    
+ 
+    print('Normalizing')
     #load and normalize measurement video
     img_return = []
     success = 1
     count=0
+    vidObj.set(cv2.CAP_PROP_POS_FRAMES, count)
+    frame = vidObj.get(cv2.CAP_PROP_POS_FRAMES)
     while success:
         success, image = vidObj.read()
         if success:
