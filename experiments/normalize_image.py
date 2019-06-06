@@ -1,8 +1,7 @@
 import numpy as np
 import os, cv2
-#from cv2 import *
 from matplotlib import pyplot as plt
-from vmedian import vmedian
+from CNNLorenzMie.experiments.vmedian import vmedian
 
 '''
 pipeline for converting videos of experimental data to normalized images that are ready to feed into the models.
@@ -91,16 +90,17 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
             denom = np.clip((bg-dark),1,255)
             testimg = np.divide(numer, denom)*100.
             testimg = np.clip(testimg, 0, 255)
-            img_return.append(testimg)
             filename = os.path.dirname(save_folder) + '/image' + str(count).zfill(4) + '.png'
             cv2.imwrite(filename, testimg)
+            testimg = np.stack((testimg,)*3, axis=-1)
+            img_return.append(testimg)
             print(filename, end='\r')
             count+= 1
     return img_return
 
 
 if __name__ == '__main__':
-    dir = '/home/lauren/Desktop/birefringence/datasets/run1/'
+    dir = '/home/group/datasets/vaterite/'
     bkgpath = dir+'vaterite_2_bkg.avi'
     vidpath = dir+'vaterite_2.avi'
     normalize_video(bkgpath, vidpath)
