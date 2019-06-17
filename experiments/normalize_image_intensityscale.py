@@ -28,7 +28,9 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
     if not success:
         print('background video not found')
         return
-
+    med = np.median(img0)
+    intensity_scale = 100./med
+    
     print('Opening and computing background')
     #instantiate vmedian object
     v = vmedian(order=order, dimensions=img0.shape)
@@ -36,7 +38,7 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
     while success:
         success, image = vidObj.read()
         if success:
-            image = image[:,:,0]
+            image = np.clip(image[:,:,0]*intensity_scale, 0, 255)
             v.add(image)
     #get background once video is done
     bg = v.get()
@@ -71,6 +73,7 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
         vidObj.set(cv2.CAP_PROP_POS_FRAMES, positions[i])
         success, image = vidObj.read()
         if success:
+            image = np.clip(image*intensity_scale, 0, 255)
             min_cand.append(image.min())
         else:
             print('Something went wrong')
@@ -86,6 +89,7 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
     while success:
         success, image = vidObj.read()
         if success:
+            image = np.clip(image*intensity_scale, 0, 255)
             numer =image[:,:,0] - dark
             denom = np.clip((bg-dark),1,255)
             testimg = np.divide(numer, denom)*100.

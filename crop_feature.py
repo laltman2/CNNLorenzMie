@@ -100,10 +100,15 @@ def crop_feature(img_list=[], xy_preds=[],
         feature_list = np.array(feature_list)
         frame_list.append(feature_list)
     frame_list = np.array(frame_list)
+    frlistsize = 0
+    for frame in frame_list:
+        frlistsize += len(frame)
     est_input_img = np.array(est_input_img)
     est_input_scale = np.array(est_input_scale)
-    if frame_list.size != len(est_input_img):
+    if frlistsize != len(est_input_img):
         print('error in output sizes')
+        print('Frame list size:', frlistsize)
+        print('Estimator input size:', len(est_input_img))
     return frame_list, est_input_img, est_input_scale
 
 if __name__=='__main__':
