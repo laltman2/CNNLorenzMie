@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/home/group/python/')
 import numpy as np
 import keras
 from keras import backend as K
@@ -156,12 +158,18 @@ class Estimator(object):
                 img_local = np.array(Image.open(filename))
                 crop_img.append(img_local)
         crop_img = np.array(crop_img)
+        scale_list = np.array(scale_list)
+        if crop_img.size == 0: #empty list case
+            data = {'z_p': [], 'a_p': [], 'n_p': []}
+            return data
+        if crop_img.shape[0] != scale_list.shape[0]: #bad input case
+            raise Exception('Error: unequal number of images ({}) and scales ({})'.format(crop_img.shape[0], scale_list.shape[0]))
         if crop_img.shape[-1]==3: #if color image, convert to grayscale
             crop_img = crop_img[:,:,:,0]
         crop_img, _ = format_image(crop_img, self.pixels)
         crop_img = crop_img/255.
-        scale_list = np.array(scale_list)
 
+        
         stamp_model = self.model
         char = stamp_model.predict([crop_img, scale_list])
 
