@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import CNNLorenzMie.darknet
+import CNNLorenzMie.darknet as darknet
 import os
 
 
