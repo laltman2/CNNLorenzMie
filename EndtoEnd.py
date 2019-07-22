@@ -3,10 +3,10 @@ import keras
 import warnings
 from keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
-from Estimator import Estimator
-from Localizer import Localizer
-from crop_feature import crop_feature
-from filters.nodoubles import nodoubles
+from CNNLorenzMie.Estimator import Estimator
+from CNNLorenzMie.Localizer import Localizer
+from CNNLorenzMie.crop_feature import crop_feature
+from CNNLorenzMie.filters.nodoubles import nodoubles
 from pylorenzmie.theory.Feature import Feature
 
 
