@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from lmfit import report_fit
 from time import time
-
+import os
 
 with open('your_MLpreds.json', 'r') as f:
     MLpreds =  json.load(f)
@@ -42,7 +42,7 @@ for i in range(numimgs):
         ins.n_m = 1.34
         feature.model.coordinates = feature.coordinates
         start = time()
-        result = feature.optimize(method='lm')
+        result = feature.optimize(method='ameoba-lm')
         print("Time to fit: {:03f}".format(time() - start))
         redchi = (result.fun).dot(result.fun) / (result.fun.size - result.x.size)
         localdict = {'framenum':i}
