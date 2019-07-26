@@ -7,6 +7,7 @@ from CNNLorenzMie.Estimator import Estimator
 from CNNLorenzMie.Localizer import Localizer
 from CNNLorenzMie.crop_feature import crop_feature
 from CNNLorenzMie.filters.nodoubles import nodoubles
+from CNNLorenzMie.filters.no_edges import no_edges
 from pylorenzmie.theory.Feature import Feature
 
 
@@ -89,7 +90,7 @@ class EndtoEnd(object):
     def localizer(self, localizer):
         self._localizer = localizer
 
-    def predict(self, img_list=[], doubles_tol=0):
+    def predict(self, img_list=[], doubles_tol=0, edge_tol=0):
         '''
         output:
         predictions: list of features
@@ -100,6 +101,7 @@ class EndtoEnd(object):
         yolo_predictions = nodoubles(yolo_predictions, tol = doubles_tol)
         (imcols, imrows, channels) = img_list[0].shape
         old_shape = (imrows, imcols)
+        yolo_predictions = no_edges(yolo_predictions, tol = edge_tol, image_shape = old_shape)
         out_features, est_images, scales = crop_feature(img_list = img_list, xy_preds = yolo_predictions, new_shape = crop_px)
         structure = list(map(len, out_features))
         char_predictions = self.estimator.predict(img_list = est_images, scale_list = scales)
@@ -170,7 +172,8 @@ if __name__ == '__main__':
 
 
     result = example.optimize()
-    report_fit(result)
+    print(result)
+    print(example.model.particle)
     h = example.model.hologram()
     fig, (ax1, ax2, ax3) = plt.subplots(1,3)
     ax1.imshow(example.data.reshape(pix), cmap='gray')
