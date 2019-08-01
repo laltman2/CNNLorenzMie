@@ -20,7 +20,7 @@ in order of frames
 
 
 
-def running_normalize(vid_path, save_folder = './norm_images/', order = 3):
+def running_normalize(vid_path, save_folder = './norm_images/', order = 3, dark=None):
     #get first frame of background
     vidObj = cv2.VideoCapture(vid_path)
 
@@ -33,21 +33,21 @@ def running_normalize(vid_path, save_folder = './norm_images/', order = 3):
     nframes = int(vidObj.get(cv2.CAP_PROP_FRAME_COUNT))
     print(nframes, 'frames')
 
-
-    print('Computing dark count')
-    #get dark count
-    samplecount=100 #how many frames to sample (at random)
-    subtract=5 #offset dark count
-    min_cand = []
-    positions = np.random.choice(nframes, samplecount, replace=False) #get random frames to sample
-    for i in range(samplecount):
-        vidObj.set(cv2.CAP_PROP_POS_FRAMES, positions[i])
-        success, image = vidObj.read()
-        if success:
-            min_cand.append(image.min())
-        else:
-            print('Something went wrong')
-    dark = min(min_cand) - subtract
+    if dark is None:
+        print('Computing dark count')
+        #get dark count
+        samplecount=100 #how many frames to sample (at random)
+        subtract=5 #offset dark count
+        min_cand = []
+        positions = np.random.choice(nframes, samplecount, replace=False) #get random frames to sample
+        for i in range(samplecount):
+            vidObj.set(cv2.CAP_PROP_POS_FRAMES, positions[i])
+            success, image = vidObj.read()
+            if success:
+                min_cand.append(image.min())
+            else:
+                print('Something went wrong')
+        dark = min(min_cand) - subtract
     print('dark count:{}'.format(dark))
  
     #make save folder if it doesn't exist
