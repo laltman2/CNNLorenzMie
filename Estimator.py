@@ -191,8 +191,8 @@ class Estimator(object):
 
 if __name__ == '__main__':
     import cv2, json
-    keras_model_path = 'keras_models/predict_stamp_newscale.h5'
-    with open('keras_models/predict_stamp_newscale.json') as f:
+    keras_model_path = 'keras_models/predict_stamp_best.h5'
+    with open('keras_models/predict_stamp_best.json') as f:
         config_json = json.load(f)
     img_path = 'examples/test_image_crop_201.png'
     img = cv2.imread(img_path)

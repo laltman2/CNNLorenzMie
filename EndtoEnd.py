@@ -130,7 +130,7 @@ if __name__ == '__main__':
     from matplotlib import pyplot as plt
 
 
-    keras_head_path = 'keras_models/predict_stamp_newscale'
+    keras_head_path = 'keras_models/predict_stamp_best'
     keras_model_path = keras_head_path+'.h5'
     keras_config_path = keras_head_path+'.json'
     with open(keras_config_path, 'r') as f:
@@ -138,17 +138,9 @@ if __name__ == '__main__':
     estimator = Estimator(model_path=keras_model_path, config_file=kconfig)
 
     
-    localizer = Localizer(configuration = 'yolonew', weights='_100000')
+    localizer = Localizer(configuration = 'holo', weights='_100k')
 
-    '''
-    img_file = 'datasets/performance/eval/images/image0000.png'
-    img_json = 'datasets/performance/eval/params/image0000.json'
-    with open(img_json, 'r') as f:
-        trueparams = json.load(f)
-    print('Ground truth')
-    print(trueparams)
-    '''
-    
+
     img_file = 'examples/test_image_large.png'
     img = cv2.imread(img_file)
     img_list = [img]
