@@ -71,7 +71,7 @@ if __name__ == '__main__':
     from matplotlib import pyplot as plt
     from matplotlib.patches import Rectangle
 
-    localizer = Localizer('yolonew', weights='_30000')
+    localizer = Localizer('holo', weights='_100k')
     print('done')
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)

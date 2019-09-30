@@ -208,7 +208,7 @@ if __name__ == "__main__":
     import time
 
     config = 'cfg_darknet/holo.cfg'
-    weights = 'cfg_darknet/holo_55000.weights'
+    weights = 'cfg_darknet/holo_100k.weights'
     metadata = 'cfg_darknet/holo.data'
     net, meta = instantiate(config, weights, metadata)
     
