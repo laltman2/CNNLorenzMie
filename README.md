@@ -35,7 +35,7 @@ Localization and estimation of Lorenz-Mie holograms of colloidal spheres using c
 	       names = /your/path/to/CNNLorenzMie/cfg_darknet/holo.names
 	       backup = /your/path/to/CNNLorenzMie/cfg_darknet/
 		
-5. Download darknet [weights file](https://drive.google.com/file/d/1SNsFxU7xYLTT36umeqAlMhnrZLILcRJq/view?usp=sharing). Put it in `CNNLorenzMie/cfg_darknet`.
+5. Download darknet [weights file](https://drive.google.com/drive/folders/1Xv8BFnBFSH4pnXnaDXPYy6UtYLjopY1R?usp=sharing). Put it in `CNNLorenzMie/cfg_darknet`.
 
 6. Test if darknet works. In terminal:
 
