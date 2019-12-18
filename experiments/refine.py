@@ -35,7 +35,7 @@ for i in range(numimgs):
         feature = features[0][0]
         feature.deserialize(pred) #puts in rest of feature info
         start = time()
-        result = feature.optimize(method='ameoba-lm')
+        result = feature.optimize(method='amoeba-lm')
         print("Time to fit: {:03f}".format(time() - start))
         print(result)
         localdict = feature.serialize(exclude=['data'])
