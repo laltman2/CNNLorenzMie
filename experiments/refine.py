@@ -32,7 +32,8 @@ for i in range(numimgs):
         if len(features[0]) != 1:
             print('Something went wrong')
             print(len(features[0]))
-        feature = features[0][0].deserialize(pred) #puts in rest of feature info
+        feature = features[0][0]
+        feature.deserialize(pred) #puts in rest of feature info
         start = time()
         result = feature.optimize(method='ameoba-lm')
         print("Time to fit: {:03f}".format(time() - start))
