@@ -41,7 +41,7 @@ for i in range(numimgs):
     for feature in features:
         localdict = feature.serialize(exclude=['data'])
         localdict['framenum'] = i
-        localdict['framepath'] = filepath
+        localdict['framepath'] = os.path.abspath(filepath)
         savedict.append(localdict)
     print('Completed frame {}'.format(i), end='\r')
 

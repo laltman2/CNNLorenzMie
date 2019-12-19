@@ -40,7 +40,7 @@ for i in range(numimgs):
         print(result)
         localdict = feature.serialize(exclude=['data'])
         localdict['framenum'] = i
-        localdict['framepath'] = filepath
+        localdict['framepath'] = os.path.abspath(filepath)
         localdict['redchi'] = result.redchi
         savedict.append(localdict)
     print('Completed frame {}'.format(i))
