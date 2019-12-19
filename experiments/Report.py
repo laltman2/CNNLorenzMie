@@ -4,7 +4,6 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from CNNLorenzMie.crop_feature import crop_feature
 from scipy import stats
-
 from matplotlib.patches import Rectangle
 
 
@@ -31,7 +30,7 @@ class Report(object):
             displays frame with YOLO boxes around detections
 
         report_feature(conditions, predtype):
-            predtype = 'ML', 'fit' 
+            predtype = 'ML', 'refined' 
             TO DO: add 'both'
             conditions: list of bools, like omit
 
@@ -39,20 +38,20 @@ class Report(object):
             for each feature of type which satisfies all conditions
 
         characterization_plot(predtype):
-            predtype = 'ML', 'fit', 'both'
+            predtype = 'ML', 'refined', 'both'
 
             displays map of a_p, n_p gaussian KDE
 
         TO DO:
         z_trajectory(xy_bounds, predtype):
-            predtype = 'ML', 'fit', 'both'
+            predtype = 'ML', 'refined', 'both'
 
             links a trajectory of single particle across multiple frames, plots time vs z_p
         '''
         
         def __init__(self,
-                     ML_preds = None,
-                     refined_preds = None,
+                     ML_preds = [],
+                     refined_preds = [],
                      omit= [] ):
 
                 self.ML_preds = ML_preds
@@ -87,13 +86,12 @@ class Report(object):
         def do_omit(self):
                 if not self.omit:
                         return
-                if self.ML_preds is not None:
-                        for cond in self.omit:
-                                self.ML_preds = [x for x in self.ML_preds if not cond(x)]
                 
-                if self.refined_preds is not None:
-                        for cond in self.omit:
-                                self.refined_preds = [x for x in self.refined_preds if not cond(x)]
+                for cond in self.omit:
+                        self.ML_preds = [x for x in self.ML_preds if not cond(x)]
+                
+                for cond in self.omit:
+                        self.refined_preds = [x for x in self.refined_preds if not cond(x)]
                                 
 
         def display_detections(self, frame):
@@ -125,15 +123,9 @@ class Report(object):
         def report_feature(self, conditions, predtype):
                 self.do_omit()
                 if predtype == 'ML':
-                        if self.ML_preds is None:
-                                print('No {} predictions loaded'.format(predtype))
-                                return
                         predictions = [x for x in self.ML_preds for cond in conditions if np.all(cond(x))]
-                elif predtype == 'fit':
-                        if self.refined_preds is None:
-                                print('No {} predictions loaded'.format(predtype))
-                                return
-                        predictions = [x for x in self.ML_preds  for cond in conditions if np.all(cond(x))]
+                elif predtype == 'refined':
+                        predictions = [x for x in self.refined_preds  for cond in conditions if np.all(cond(x))]
                 else:
                         print('Invalid predictions type')
                 for pred in predictions:
@@ -162,9 +154,17 @@ class Report(object):
                 if predtype == 'ML':
                         a_p = [x['a_p'] for x in self.ML_preds]
                         n_p = [x['n_p'] for x in self.ML_preds]
+                        color = 'hot'
+                elif predtype == 'refined':
+                        a_p = [x['a_p'] for x in self.refined_preds]
+                        n_p = [x['n_p'] for x in self.refined_preds]
+                        color = 'cool'
+                if not a_p:
+                        print('No {} predictions found'.format(predtype))
+                        return
                 xy = np.vstack([a_p, n_p])
                 z = stats.gaussian_kde(xy)(xy)
-                plt.scatter(a_p, n_p, c=z, alpha=0.3, cmap = 'jet')
+                plt.scatter(a_p, n_p, c=z, alpha=0.3, cmap = color)
                 plt.xlabel('a_p')
                 plt.ylabel('n_p')
                 plt.show()
