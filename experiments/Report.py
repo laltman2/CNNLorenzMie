@@ -111,6 +111,7 @@ class Report(object):
                         return
                         
                 fig, ax = plt.subplots()
+                fig.suptitle('Frame {}'.format(frame))
                 ax.imshow(frame_img, cmap='gray')
                 for feature in detections:
                         x = feature['x_p']
@@ -142,11 +143,18 @@ class Report(object):
                         h = feature.model.hologram()
                         res = feature.residuals()
                         print(pred)
-                        fig, (ax1, ax2, ax3) = plt.subplots(1,3)
+                        fig, axes = plt.subplots(1,3)
+                        for ax in axes:
+                                ax.set_xticks([])
+                                ax.set_yticks([])
+                                ax.xaxis.set_label_position('top') 
+                        (ax1, ax2, ax3) = axes
                         ax1.imshow(np.clip(feature.data.reshape(shape)*60, 0, 255), cmap='gray')
                         ax2.imshow(np.clip(h.reshape(shape)*60, 0, 255), cmap='gray')
                         ax3.imshow(res.reshape(shape), cmap='gray')
-                        fig.suptitle('Data, Predicted Hologram, Residual')
+                        ax1.set_xlabel('Data')
+                        ax2.set_xlabel('Predicted Hologram')
+                        ax3.set_xlabel('Residual')
                         plt.show()
                         
         def characterization_plot(self, predtype):
@@ -155,18 +163,27 @@ class Report(object):
                         a_p = [x['a_p'] for x in self.ML_preds]
                         n_p = [x['n_p'] for x in self.ML_preds]
                         color = 'hot'
+                        label = predtype
                 elif predtype == 'refined':
                         a_p = [x['a_p'] for x in self.refined_preds]
                         n_p = [x['n_p'] for x in self.refined_preds]
                         color = 'cool'
+                        label = predtype
+                elif predtype == 'both':
+                        pass
                 if not a_p:
                         print('No {} predictions found'.format(predtype))
                         return
                 xy = np.vstack([a_p, n_p])
                 z = stats.gaussian_kde(xy)(xy)
-                plt.scatter(a_p, n_p, c=z, alpha=0.3, cmap = color)
-                plt.xlabel('a_p')
-                plt.ylabel('n_p')
+                fig, ax = plt.subplots()
+                kde = ax.scatter(a_p, n_p, c=z, alpha=0.3, cmap = color)
+                ax.set_xlabel('a_p')
+                ax.set_ylabel('n_p')
+                cb = fig.colorbar(kde)
+                cb.set_label(label)
+                cb.set_alpha(1)
+                cb.draw_all()
                 plt.show()
                 
                 
@@ -174,12 +191,12 @@ class Report(object):
 
 if __name__ == '__main__':
         
-        with open('/home/group/datasets/Si_drop/1_5um/data/Si_MLpreds_serial_1218.json', 'r') as f:
+        with open('./Si_MLpreds_serial_1218.json', 'r') as f:
                 d = json.load(f)
                 
         r = Report(ML_preds = d)
         #r.omit.append(lambda x: x['a_p']<1)
         r.characterization_plot('ML')
-        r.display_detections(0)
-        conditions = [(lambda x: x['framenum'] == 0)]
-        r.report_feature(conditions, 'ML')
+        #r.display_detections(0)
+        #conditions = [(lambda x: x['framenum'] == 0)]
+        #r.report_feature(conditions, 'ML')
