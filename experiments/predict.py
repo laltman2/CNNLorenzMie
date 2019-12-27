@@ -35,7 +35,7 @@ numimgs = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f
 
 #just do one at a time for now
 for i in range(numimgs):
-    filepath = './norm_images/image' + str(i).zfill(4) + '.png'
+    filepath = path + '/image' + str(i).zfill(4) + '.png'
     localim = cv2.imread(filepath)
     features = e2e.predict(img_list = [localim])[0]
     for feature in features:

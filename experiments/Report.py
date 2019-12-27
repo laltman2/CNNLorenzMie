@@ -149,13 +149,20 @@ class Report(object):
                                 ax.set_yticks([])
                                 ax.xaxis.set_label_position('top') 
                         (ax1, ax2, ax3) = axes
-                        ax1.imshow(np.clip(feature.data.reshape(shape)*60, 0, 255), cmap='gray')
-                        ax2.imshow(np.clip(h.reshape(shape)*60, 0, 255), cmap='gray')
+                        cropped_data = np.clip(feature.data.reshape(shape)*100, 0, 255)
+                        ax1.imshow(cropped_data, cmap='gray')
+                        ax2.imshow(np.clip(h.reshape(shape)*100, 0, 255), cmap='gray')
                         ax3.imshow(res.reshape(shape), cmap='gray')
                         ax1.set_xlabel('Data')
                         ax2.set_xlabel('Predicted Hologram')
                         ax3.set_xlabel('Residual')
+                        z_str = '%.3f'%pred['z_p']
+                        a_str = '%.3f'%pred['a_p']
+                        n_str = '%.3f'%pred['n_p']
+                        fig.suptitle('Frame {}'.format(pred['framenum']))
+                        fig.text(0.5, 0.2, 'z_p = {}px \n a_p = {}um \n n_p = {}'.format(z_str, a_str, n_str), horizontalalignment='center')
                         plt.show()
+                        return cropped_data
                         
         def characterization_plot(self, predtype):
                 self.do_omit()
@@ -170,7 +177,7 @@ class Report(object):
                         color = 'cool'
                         label = predtype
                 elif predtype == 'both':
-                        pass
+                        pass #to do
                 if not a_p:
                         print('No {} predictions found'.format(predtype))
                         return
@@ -191,12 +198,12 @@ class Report(object):
 
 if __name__ == '__main__':
         
-        with open('./Si_MLpreds_serial_1218.json', 'r') as f:
+        with open('/home/group/datasets/Si_drop/1_5um/data/Si_MLpreds_serial_1218.json', 'r') as f:
                 d = json.load(f)
                 
         r = Report(ML_preds = d)
         #r.omit.append(lambda x: x['a_p']<1)
-        r.characterization_plot('ML')
-        #r.display_detections(0)
-        #conditions = [(lambda x: x['framenum'] == 0)]
-        #r.report_feature(conditions, 'ML')
+        #r.characterization_plot('ML')
+        #r.display_detections(15)
+        conditions = [(lambda x: x['framenum'] == 15)]
+        r.report_feature(conditions, 'ML')

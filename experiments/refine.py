@@ -17,7 +17,7 @@ savedict = []
 
 #just do one at a time for now
 for i in range(numimgs):
-    filepath = './norm_images/image' + str(i).zfill(4) + '.png'
+    filepath = path + '/image' + str(i).zfill(4) + '.png'
     localim = cv2.imread(filepath)
     localpreds = [x for x in MLpreds if x['framenum']==i]
     #reformat for cropping
