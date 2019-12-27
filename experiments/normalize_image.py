@@ -20,7 +20,7 @@ in order of frames
 
 
 
-def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2):
+def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2, return_images = False):
     #get first frame of background
     vidObj = cv2.VideoCapture(bg_path)
     success, img0 = vidObj.read()
@@ -93,7 +93,8 @@ def normalize_video(bg_path, vid_path, save_folder = './norm_images/', order = 2
             filename = os.path.dirname(save_folder) + '/image' + str(count).zfill(4) + '.png'
             cv2.imwrite(filename, testimg)
             testimg = np.stack((testimg,)*3, axis=-1)
-            img_return.append(testimg)
+            if return_images:
+                img_return.append(testimg)
             print(filename, end='\r')
             count+= 1
     return img_return

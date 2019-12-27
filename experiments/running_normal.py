@@ -20,7 +20,7 @@ in order of frames
 
 
 
-def running_normalize(vid_path, save_folder = './norm_images/', order = 3, dark=None):
+def running_normalize(vid_path, save_folder = './norm_images/', order = 3, dark=None, return_images = False):
     #get first frame of background
     vidObj = cv2.VideoCapture(vid_path)
 
@@ -58,7 +58,7 @@ def running_normalize(vid_path, save_folder = './norm_images/', order = 3, dark=
     img0 = img0[:,:,0]
     if not success:
         print('Video not found')
-        retur
+        return
 
     img_return = []
     success = 1
@@ -84,7 +84,8 @@ def running_normalize(vid_path, save_folder = './norm_images/', order = 3, dark=
             filename = os.path.dirname(save_folder) + '/image' + str(count).zfill(4) + '.png'
             cv2.imwrite(filename, testimg)
             testimg = np.stack((testimg,)*3, axis=-1)
-            img_return.append(testimg)
+            if return_images:
+                img_return.append(testimg)
             print(filename, end='\r')
             v.add(image)
             count+= 1
