@@ -1,4 +1,4 @@
-import cv2, json
+import cv2, json, os
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -121,7 +121,7 @@ class Report(object):
                         ax.add_patch(test_rect)
                 plt.show()
 
-        def report_feature(self, conditions, predtype):
+        def report_feature(self, conditions, predtype, crop_dir = None):
                 self.do_omit()
                 if predtype == 'ML':
                         predictions = [x for x in self.ML_preds for cond in conditions if np.all(cond(x))]
@@ -150,6 +150,17 @@ class Report(object):
                                 ax.xaxis.set_label_position('top') 
                         (ax1, ax2, ax3) = axes
                         cropped_data = np.clip(feature.data.reshape(shape)*100, 0, 255)
+                        if crop_dir is not None:
+                                bad_name = True
+                                counter = 0
+                                while bad_name:
+                                        crop_path = os.path.abspath(crop_dir) + '/frame{}_img{}.png'.format(pred['framenum'], counter)
+                                        if not os.path.isfile(crop_path):
+                                                bad_name=False
+                                        else:
+                                                counter += 1
+                                cv2.imwrite(crop_path, cropped_data)
+                                print(crop_path)
                         ax1.imshow(cropped_data, cmap='gray')
                         ax2.imshow(np.clip(h.reshape(shape)*100, 0, 255), cmap='gray')
                         ax3.imshow(res.reshape(shape), cmap='gray')
@@ -162,7 +173,8 @@ class Report(object):
                         fig.suptitle('Frame {}'.format(pred['framenum']))
                         fig.text(0.5, 0.2, 'z_p = {}px \n a_p = {}um \n n_p = {}'.format(z_str, a_str, n_str), horizontalalignment='center')
                         plt.show()
-                        return cropped_data
+                                        
+                                
                         
         def characterization_plot(self, predtype):
                 self.do_omit()
@@ -178,6 +190,9 @@ class Report(object):
                         label = predtype
                 elif predtype == 'both':
                         pass #to do
+                else:
+                        print('Invalid frame type')
+                        return
                 if not a_p:
                         print('No {} predictions found'.format(predtype))
                         return
