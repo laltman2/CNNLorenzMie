@@ -13,7 +13,7 @@ try:
 except ImportError:
     from pylorenzmie.theory.LMHologram import LMHologram
 from pylorenzmie.theory.Instrument import coordinates
-from Estimator import rescale, format_image, rescale_back
+from CNNLorenzMie.Estimator import rescale, format_image, rescale_back
 
 '''One-stop training of a new keras model for characterization of stamp-sizes holographic Lorenz-Mie images
 
@@ -42,7 +42,7 @@ zmin, zmax = particle['z_p']
 amin, amax = particle['a_p']
 nmin, nmax = particle['n_p']
 
-print(nmin, nmax)
+
 def format_json(sample, config, scale=1):
     '''Returns a string of JSON annotations'''
     annotation = []
@@ -54,12 +54,18 @@ def format_json(sample, config, scale=1):
         annotation.append(savestr)
     return json.dumps(annotation, indent=4)
 
-def makedata(settype='train/', nframes=10):
+def makedata(settype='train/', nframes=10, overwrite=True):
     # create directories and filenames
     directory = os.path.expanduser(config['directory'])+settype
+    start = 0
     for dir in ('images', 'params'):
-        if not os.path.exists(os.path.join(directory, dir)):
-            os.makedirs(os.path.join(directory, dir))
+        path = os.path.join(directory, dir)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        already_files = len(os.listdir(path))
+        if already_files > start and not overwrite:
+            start = already_files
+    #start += 1
     shutil.copy2(configfile, directory)
     filetxtname = os.path.join(directory, 'filenames.txt')
     imgname = os.path.join(directory, 'images', 'image{:04d}.' + imgtype)
@@ -70,7 +76,7 @@ def makedata(settype='train/', nframes=10):
     zlist = []
     alist = []
     nlist = []
-    for n in range(nframes):  # for each frame ...
+    for n in range(start, nframes+start):  # for each frame ...
         print(imgname.format(n))
         sample = make_sample(config) # ... get params for particles
         s = sample[0]
@@ -164,23 +170,17 @@ def loaddata(settype='train/', nframes=10):
 file_header = config['directory']
 numtrain = config['nframes_train']
 numtest = config['nframes_test']
-##Creating##                                                                                                            
-numeval = 25000
-print('Training set')
-img_train, params_train = makedata(settype='eval/', nframes = numeval)
-#z_train, a_train, n_train = params_train                                                                               
-bloop()
 
-'''
 ##Creating##
 print('Training set')
 img_train, params_train, scale_train = makedata(settype='train/', nframes = numtrain)
 z_train, a_train, n_train = params_train
+
 print('Validation set')
 img_test, params_test, scale_test = makedata(settype='test/', nframes = numtest)
 z_test, a_test, n_test = params_test
-'''
 
+'''
 ##Loading##
 print('Training set')
 img_train, params_train, scale_train = loaddata(settype='train/', nframes = numtrain)
@@ -188,9 +188,7 @@ z_train, a_train, n_train = params_train
 print('Validation set')
 img_test, params_test, scale_test = loaddata(settype='test/', nframes = numtest)
 z_test, a_test, n_test = params_test
-
-print(np.amin(img_train), np.amax(img_train))
-
+'''
 
 #Image dimensions
 img_rows, img_cols = shape
@@ -324,6 +322,6 @@ with open(save_json, 'w') as f:
     json.dump(save_conf, f)
 print('Saved config')
 
-#if config['delete_files_after_training']:
-#    head_dir = os.path.expanduser(config['directory'])
-#    shutil.rmtree(head_dir)
+if config['delete_files_after_training']:
+    head_dir = os.path.expanduser(config['directory'])
+    shutil.rmtree(head_dir)
