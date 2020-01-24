@@ -58,27 +58,31 @@ def makedata(settype='train/', nframes=10, overwrite=True):
     # create directories and filenames
     directory = os.path.expanduser(config['directory'])+settype
     start = 0
-    tempnum = nframes
     for dir in ('images', 'params'):
         path = os.path.join(directory, dir)
         if not os.path.exists(path):
             os.makedirs(path)
         already_files = len(os.listdir(path))
-        if already_files < tempnum:  #if there are fewer than the number of files desired
-            tempnum = already_files
-    if not overwrite:
-        start = tempnum
-        if start >= nframes:
-            return
+        if already_files > start and not overwrite:
+            start = already_files
+    #start += 1
     shutil.copy2(configfile, directory)
     filetxtname = os.path.join(directory, 'filenames.txt')
     imgname = os.path.join(directory, 'images', 'image{:04d}.' + imgtype)
     jsonname = os.path.join(directory, 'params', 'image{:04d}.json')
     filetxt = open(filetxtname, 'w')
-    for n in range(start, nframes):  # for each frame ...
+    img_list = []
+    scale_list = []
+    zlist = []
+    alist = []
+    nlist = []
+    for n in range(start, nframes+start):  # for each frame ...
         print(imgname.format(n))
         sample = make_sample(config) # ... get params for particles
         s = sample[0]
+        zlist.append(s.z_p)
+        alist.append(s.a_p)
+        nlist.append(s.n_p)
         ext = feature_extent(s, config)
         #introduce 1% noise to ext
         ext = np.random.normal(ext, 0.01*ext)
@@ -103,14 +107,27 @@ def makedata(settype='train/', nframes=10, overwrite=True):
         frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
         #decimate
         frame = frame[::scale, ::scale]
+        img_list.append(frame)
+        scale_list.append(scale)
         
         # ... and save the results
+        #do we need?
         cv2.imwrite(imgname.format(n), frame)
         with open(jsonname.format(n), 'w') as fp:
             fp.write(format_json(sample, config, scale))
         filetxt.write(imgname.format(n) + '\n')
-    return
         
+    img_list = np.array(img_list).astype('float32')
+    img_list *= 1./255
+    zlist = np.array(zlist).astype('float32')
+    zlist = rescale(zmin, zmax, zlist)
+    alist = np.array(alist).astype('float32')
+    alist = rescale(amin, amax, alist)
+    nlist = np.array(nlist).astype('float32')
+    nlist = rescale(nmin, nmax, nlist)
+    scale_list = np.array(scale_list).astype(int)
+    params_list = [zlist, alist, nlist]
+    return img_list, params_list, scale_list
 
 def loaddata(settype='train/', nframes=10):
     directory = os.path.expanduser(config['directory'])+settype
@@ -153,25 +170,27 @@ def loaddata(settype='train/', nframes=10):
 file_header = config['directory']
 numtrain = config['nframes_train']
 numtest = config['nframes_test']
-owrite = config['overwrite']
+
 
 ##Creating##
-#if overwrite=False and there are enough files in the directory, will pass without creating more data
-print('Creating Training set')
-makedata(settype='train/', nframes = numtrain, overwrite = owrite)
+print('Training set')
+img_train, params_train, scale_train = makedata(settype='train/', nframes = numtrain, overwrite = False)
+z_train, a_train, n_train = params_train
 
-print('Creating Validation set')
-makedata(settype='test/', nframes = numtest, overwrite = owrite)
-
+bloop()
+print('Validation set')
+img_test, params_test, scale_test = makedata(settype='test/', nframes = numtest)
+z_test, a_test, n_test = params_test
+'''
 
 ##Loading##
-print('Loading Training set')
+print('Training set')
 img_train, params_train, scale_train = loaddata(settype='train/', nframes = numtrain)
 z_train, a_train, n_train = params_train
-print('Loading Validation set')
+print('Validation set')
 img_test, params_test, scale_test = loaddata(settype='test/', nframes = numtest)
 z_test, a_test, n_test = params_test
-
+'''
 
 #Image dimensions
 img_rows, img_cols = shape
