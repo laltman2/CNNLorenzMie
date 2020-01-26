@@ -89,7 +89,7 @@ def crop_feature(img_list=[], xy_preds=[],
             ext_shape = (ext, ext)
             data,corner2 = crop_center(cropped, newcenter, ext_shape)
             corner = np.add(corner1,corner2)
-            data = np.array(data)
+            data = np.array(data)/100.
             f.data = data
             coords = coordinates(shape=ext_shape, corner=corner)
             f.model.coordinates = coords
