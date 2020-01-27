@@ -90,9 +90,9 @@ def crop_feature(img_list=[], xy_preds=[],
             data,corner2 = crop_center(cropped, newcenter, ext_shape)
             corner = np.add(corner1,corner2)
             data = np.array(data)/100.
-            data = np.array([item for sublist in data for item in sublist])
             f.data = data
-            coords = coordinates(shape = ext_shape, corner=corner)
+            coords = coordinates(shape=ext_shape, corner=corner)
+            f.model.coordinates = coords
             f.coordinates = coords
             f.model.particle.x_p = x
             f.model.particle.y_p = y
