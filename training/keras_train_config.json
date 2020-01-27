@@ -13,16 +13,17 @@
 	"z_p": [50, 600]
     },
     "training": {
-	"epochs": 1000,
+	"epochs": 10000,
 	"batchsize": 64,
-	"savefile": "../keras_models/predict_stamp_auto"
+	"savefile": "../keras_models/fully_trained_stamp"
     },
-    "directory": "../datasets/",
+    "directory": "../datasets/fullrange/",
     "imgtype": "png",
     "shape": [201, 201],
     "noise": 0.05,
-    "nframes_train": 10000,
-    "nframes_test": 1000,
-    "nframes_eval": 100,
-    "delete_files_after_training": true
+    "train": {"nframes": 200000},
+    "test": {"nframes": 10000},
+    "eval": {"nframes": 100},
+    "overwrite": false,
+    "delete_files_after_training": false
 }
