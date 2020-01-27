@@ -19,11 +19,6 @@ with open(configfile, 'r') as f:
 _, input_shape = format_image(np.array([]), config['shape'])
 
 
-#Training Parameters
-batch_size = config['training']['batchsize']
-epochs = config['training']['epochs']
-save_file = str(config['training']['savefile'])
-
 def multioutput_model():
     model_input_img = keras.Input(shape=input_shape, name='image')
     model_input_scale = keras.Input(shape=(1,), name='scale')
@@ -81,4 +76,6 @@ def callbacks():
     return callbacks
 
 
-
+if __name__ == '__main__':
+    model = multioutput_model()
+    model.summary()
