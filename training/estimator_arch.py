@@ -4,6 +4,7 @@ from keras import regularizers
 from keras.models import Sequential, Model, load_model
 from keras.layers import Dense, Dropout, Flatten, concatenate
 from keras.layers import Conv2D, MaxPooling2D
+from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 import tensorflow as tf
 import numpy as np
@@ -65,14 +66,15 @@ def multioutput_model():
     
 
 #Callbacks
-def callbacks():
+def callbacks(filepath):
     callbacks = []
 
     tbCallBack = keras.callbacks.TensorBoard(log_dir='../Graph', histogram_freq=0, write_graph=True, write_images=True)
     earlystopCB = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=2000, patience=10, verbose=0, mode='auto', baseline=None)
-
-    callbacks.append(tbCallBack)
-    callbacks.append(earlystopCB)
+    checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+    #callbacks.append(tbCallBack)
+    #callbacks.append(earlystopCB)
+    callbacks.append(checkpoint)
     return callbacks
 
 

@@ -26,18 +26,22 @@ numtest=config['test']['nframes']
 
 estimator = multioutput_model()
 
+save_callback = os.path.expanduser(save_file+'_best_callback.h5')
+
+callbacks = callbacks(save_callback)
+
 estimator.fit_generator(generator= train_generator,
                         steps_per_epoch= (numtrain // batch_size),
                         epochs= epochs,
                         verbose=1,
+                        callbacks = callbacks,
                         validation_data= test_generator,
                         validation_steps= (numtest // batch_size))
 
 
 print('Finished training')
 
-
-save_keras = os.path.expanduser(save_file+'.h5')
+save_keras = os.path.expanduser(save_file+'_final.h5')
 save_json = os.path.expanduser(save_file+'.json')
 
 estimator.save(save_keras)
