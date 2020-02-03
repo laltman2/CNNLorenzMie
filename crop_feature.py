@@ -1,6 +1,8 @@
 import numpy as np
-from pylorenzmie.theory.Feature import Feature
-from pylorenzmie.theory.Instrument import coordinates
+from pylorenzmie.analysis import Feature
+from pylorenzmie.theory import LMHologram
+from pylorenzmie.theory import coordinates
+
 
 def crop_center(img_local, center, cropshape):
     (xc, yc) = center
@@ -20,30 +22,32 @@ def crop_center(img_local, center, cropshape):
         bot_frame = int(np.floor(crop_img_cols/2.))
     ybot = yc - bot_frame
     ytop = yc + top_frame
-    if xbot<0:
+    if xbot < 0:
         xbot = 0
         xtop = crop_img_rows
-    if ybot<0:
+    if ybot < 0:
         ybot = 0
         ytop = crop_img_cols
-    if xtop>img_rows:
+    if xtop > img_rows:
         xtop = img_rows
         xbot = img_rows - crop_img_rows
-    if ytop>img_cols:
+    if ytop > img_cols:
         ytop = img_cols
         ybot = img_cols - crop_img_cols
     cropped = img_local[ybot:ytop, xbot:xtop]
     corner = (xbot, ybot)
     return cropped, corner
 
+
 '''
 Cropping function meant for intermediate use in EndtoEnd object
 
 If you're looking to use cropping as a standalone function, chances are crop.py will be more useful to you.
 '''
-def crop_feature(img_list=[], xy_preds=[],
-                 new_shape=(201,201)):
 
+
+def crop_feature(img_list=[], xy_preds=[],
+                 new_shape=(201, 201)):
     '''
     img_list: list of images (np.ndarray) with shape: old_shape
     xy_preds is the output of a yolo prediction: list of list of dicts
@@ -54,12 +58,12 @@ def crop_feature(img_list=[], xy_preds=[],
     list of list of feature objects
     '''
 
-
     numfiles = len(img_list)
     numpreds = len(xy_preds)
-    if numfiles!=numpreds:
-        raise Exception('Number of images: {} does not match number of predictions: {}'.format(numfiles, numpreds))
-            
+    if numfiles != numpreds:
+        raise Exception('Number of images: {} does not match number of predictions: {}'.format(
+            numfiles, numpreds))
+
     frame_list = []
     est_input_img = []
     est_input_scale = []
@@ -68,32 +72,31 @@ def crop_feature(img_list=[], xy_preds=[],
         img_local = img_list[num]
         preds_local = xy_preds[num]
         for pred in preds_local:
-            f = Feature()
+            f = Feature(model=LMHologram())
             conf = pred["conf"]*100
-            (x,y,w,h) = pred["bbox"]
+            (x, y, w, h) = pred["bbox"]
             xc = int(np.round(x))
             yc = int(np.round(y))
-            ext = np.amax([int(w),int(h)])
+            ext = np.amax([int(w), int(h)])
             if ext <= new_shape[0]:
                 crop_shape = new_shape
-                scale=1
+                scale = 1
             else:
                 scale = int(np.floor(ext/new_shape[0]) + 1)
                 crop_shape = np.multiply(new_shape, scale)
-            cropped,corner1 = crop_center(img_local, (xc,yc), crop_shape)
-            cropped = cropped[:,:,0]
+            cropped, corner1 = crop_center(img_local, (xc, yc), crop_shape)
+            cropped = cropped[:, :, 0]
             est_img = cropped[::scale, ::scale]
             est_input_img.append(est_img)
             est_input_scale.append(scale)
             newcenter = [int(x) for x in np.divide(crop_shape, 2)]
             ext_shape = (ext, ext)
-            data,corner2 = crop_center(cropped, newcenter, ext_shape)
-            corner = np.add(corner1,corner2)
+            data, corner2 = crop_center(cropped, newcenter, ext_shape)
+            corner = np.add(corner1, corner2)
             data = np.array(data)/100.
             f.data = data
             coords = coordinates(shape=ext_shape, corner=corner)
             f.model.coordinates = coords
-            f.coordinates = coords
             f.model.particle.x_p = x
             f.model.particle.y_p = y
             feature_list.append(f)
@@ -111,10 +114,12 @@ def crop_feature(img_list=[], xy_preds=[],
         print('Estimator input size:', len(est_input_img))
     return frame_list, est_input_img, est_input_scale
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     from matplotlib import pyplot as plt
-    import json, cv2
-    
+    import json
+    import cv2
+
     img_file = 'examples/test_image_large.png'
     img = cv2.imread(img_file)
     preds_file = 'examples/test_yolo_pred.json'
@@ -123,8 +128,8 @@ if __name__=='__main__':
         data = json.load(f)
     xy_preds = data
 
-    nshape = (101,101)
-    imlist = crop_feature(img_list=[img], xy_preds = xy_preds, new_shape=nshape)
+    nshape = (101, 101)
+    imlist = crop_feature(img_list=[img], xy_preds=xy_preds, new_shape=nshape)
     print(imlist[2])
     example = imlist[0][0]
     print('Example Image')
