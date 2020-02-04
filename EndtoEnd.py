@@ -119,7 +119,6 @@ class EndtoEnd(object):
                 feature.model.particle.z_p = zpop.pop(0)
                 feature.model.particle.a_p = apop.pop(0)
                 feature.model.particle.n_p = npop.pop(0)
-                feature.model.coordinates = feature.coordinates
                 feature.model.instrument = self.instrument
                 index += 1
         return out_features
