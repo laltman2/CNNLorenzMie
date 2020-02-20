@@ -1,7 +1,7 @@
 from __future__ import print_function
 import json, shutil, os, cv2
 import numpy as np
-from YOLO_data_generator import makedata
+from CNNLorenzMie.training.YOLO_data_generator import makedata
 try:
     from pylorenzmie.theory.CudaLMHologram import CudaLMHologram as LMHologram
 except ImportError:

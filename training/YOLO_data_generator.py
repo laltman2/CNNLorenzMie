@@ -12,7 +12,7 @@ except ImportError:
     from pylorenzmie.theory.LMHologram import LMHologram
 from pylorenzmie.theory.Instrument import coordinates
 from pylorenzmie.theory.Sphere import Sphere
-from CNNLorenzMie.training.YOLO_classify.Classify import classify
+from CNNLorenzMie.training.Classify import classify
 import numpy as np
 
 import cv2
