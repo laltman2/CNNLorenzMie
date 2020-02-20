@@ -12,13 +12,13 @@ except ImportError:
     from pylorenzmie.theory.LMHologram import LMHologram
 from pylorenzmie.theory.Instrument import coordinates
 from pylorenzmie.theory.Sphere import Sphere
+from CNNLorenzMie.training.YOLO_classify.Classify import classify
 import numpy as np
 
 import cv2
 import os
 import shutil
 
-print('hi, im in python dir!')
 
 def feature_extent(sphere, config, nfringes=20, maxrange=300):
     '''Radius of holographic feature in pixels'''
@@ -40,16 +40,16 @@ def feature_extent(sphere, config, nfringes=20, maxrange=300):
 def format_yolo(sample, config):
     '''Returns a string of YOLO annotations'''
     (h, w) = config['shape']
-    type = 0  # one class for now
     fmt = '{}' + 4 * ' {:.6f}' + '\n'
     annotation = ''
     for sphere in sample:
+        stype = classify(sphere, config)
         diameter = 2. * feature_extent(sphere, config)
         x_p = sphere.x_p / w
         y_p = sphere.y_p / h
         w_p = diameter / w
         h_p = diameter / h
-        annotation += fmt.format(type, x_p, y_p, w_p, h_p)
+        annotation += fmt.format(stype, x_p, y_p, w_p, h_p)
     return annotation
 
 
@@ -65,6 +65,11 @@ def make_value(range, decimals=3):
     '''Returns the value for a property'''
     if np.isscalar(range):
         value = range
+    elif isinstance(range[0], list): #multiple ranges (ie excluded region(s))
+        values = []
+        for localrange in range:
+            values.append(np.random.uniform(localrange[0], localrange[1]))
+        value = np.random.choice(values, 1)[0]
     elif range[0] == range[1]:
         value = range[0]
     else:
@@ -108,7 +113,7 @@ def make_sample(config):
     return sample
 
 
-def mtd(config={}):
+def makedata(config={}):
     '''Make Training Data'''
     # set up pipeline for hologram calculation
     shape = config['shape']
@@ -118,16 +123,30 @@ def mtd(config={}):
     # create directories and filenames
     directory = os.path.expanduser(config['directory'])
     imgtype = config['imgtype']
+
+    nframes = config['nframes']
+    start = 0
+    tempnum = nframes
     for dir in ('images', 'labels', 'params'):
-        if not os.path.exists(os.path.join(directory, dir)):
-            os.makedirs(os.path.join(directory, dir))
+        path = os.path.join(directory, dir)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        already_files = len(os.listdir(path))
+        if already_files < tempnum:  #if there are fewer than the number of files desired
+            tempnum = already_files
+    if not config['overwrite']:
+        start = tempnum
+        if start >= nframes:
+            return
+    with open(directory + '/config.json', 'w') as f:
+        json.dump(config, f)
     filetxtname = os.path.join(directory, 'filenames.txt')
     imgname = os.path.join(directory, 'images', 'image{:04d}.' + imgtype)
     jsonname = os.path.join(directory, 'params', 'image{:04d}.json')
     yoloname = os.path.join(directory, 'labels' , 'image{:04d}.txt')
 
     filetxt = open(filetxtname, 'w')
-    for n in range(config['nframes']):  # for each frame ...
+    for n in range(start, nframes):  # for each frame ...
         print(imgname.format(n))
         sample = make_sample(config)   # ... get params for particles
         # ... calculate hologram
@@ -146,6 +165,7 @@ def mtd(config={}):
             fp.write(format_yolo(sample, config))
         filetxt.write(imgname.format(n) + '\n')
         #print('finished image {}'.format(n+1))
+    return
 
 
 if __name__ == '__main__':
@@ -154,11 +174,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('configfile', type=str,
-                        nargs='?', default='mtd.json',
+                        nargs='?', default='./darknet_train_config.json',
                         help='configuration file')
     args = parser.parse_args()
 
     with open(args.configfile, 'r') as f:
         config = json.load(f)
 
-    mtd(config)
+    makedata(config)

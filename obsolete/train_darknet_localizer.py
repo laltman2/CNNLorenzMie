@@ -1,13 +1,12 @@
 from __future__ import print_function
 import json, shutil, os, cv2
 import numpy as np
-from YOLO_data_generator import makedata
+from mtd4train import mtd
 try:
     from pylorenzmie.theory.CudaLMHologram import CudaLMHologram as LMHologram
 except ImportError:
     from pylorenzmie.theory.LMHologram import LMHologram
 from pylorenzmie.theory.Instrument import coordinates
-
 
 '''One-stop training of a new darknet model for classification and localization of features in frame
 
@@ -32,8 +31,7 @@ file_header = os.path.abspath(config['directory'])
 numtrain = config['nframes_train']
 numtest = config['nframes_test']
 
-classes = config['particle']['names']
-numclasses = len(classes)
+numclasses = 1 #single class version (for now)
 
 #Make test/train data
 mtd_config = config.copy()
@@ -43,25 +41,21 @@ test_dir = file_header + '/test'
 mtd_config['directory'] = train_dir
 mtd_config['nframes'] = numtrain
 print('Training set')
-makedata(config = mtd_config)
+mtd(config = mtd_config)
 
 mtd_config['directory'] = test_dir
 mtd_config['nframes'] = numtest
 print('Validation set')
-makedata(config = mtd_config)
-
-basedir = os.getcwd().split('/training')[0]
+mtd(config = mtd_config)
 
 #prepare config files
 save_header = os.path.abspath(config['training']['savefile'])
-backup_dir = basedir + '/cfg_darknet/backup'
+backup_dir = os.getcwd()+'/cfg_darknet/backup'
 if not os.path.exists(backup_dir):
     os.makedirs(backup_dir)
 
 namesfile = save_header + '.names'
-
-names = ' \n'.join(classes)
-
+names = config['particle']['name']
 with open(namesfile, 'w') as fw:
     fw.write(names)
 print('Created names file')
@@ -78,14 +72,11 @@ print('Created data file')
     
 cfgfile = save_header + '.cfg'
 istiny = config['training']['tiny']
-
-
 if istiny:
-    og_cfg = basedir + '/cfg_darknet/fromscratch/yolov3-tiny.cfg'
+    og_cfg = os.getcwd() + '/cfg_darknet/fromscratch/yolov3-tiny.cfg'
 else:
-    og_cfg = basedir + '/cfg_darknet/fromscratch/yolov3.cfg'
-
-
+    og_cfg = os.getcwd() + '/cfg_darknet/fromscratch/yolov3.cfg'
+    
 with open(og_cfg, 'r') as fr:
     cfg_lines = fr.readlines()
 
@@ -114,8 +105,8 @@ with open(save_json, 'w') as f:
 print('Saved training config')
 
 #Train
-weightsfile = os.path.abspath(config['training']['weightsfile'])
-cmd = '{}/darknet/darknet detector train {} {} {}'.format(basedir, datafile, cfgfile, weightsfile)
+weightsfile = config['training']['weightsfile']
+cmd = 'darknet/darknet detector train {} {} {}'.format(datafile, cfgfile, weightsfile)
 os.system(cmd)
 
 if config['delete_files_after_training']:

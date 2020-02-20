@@ -6,9 +6,9 @@
     },
     "particle": {
 	"nspheres": [0,5],
-	"names": ["+n_p", "-n_p"],
+	"name": "HOLO",
 	"a_p": [0.2, 5.0],
-	"n_p": [[1, 1.29], [1.39, 2.5]],
+	"n_p": [1.38, 2.5],
 	"k_p": [0, 0],
 	"x_p": [100, 1100],
 	"y_p": [100, 900],
@@ -18,16 +18,15 @@
 	"batch": 64,
 	"subdivisions": 32,
 	"tiny": false,
-	"weightsfile": "../../cfg_darknet/fromscratch/darknet53.conv.74",
-	"savefile": "../../cfg_darknet/bubble_classify"
+	"weightsfile": "../cfg_darknet/backup/darknet53.conv.74",
+	"savefile": "../cfg_darknet/yolotest"
     },
-    "directory": "../../datasets/YOLO_classify",
+    "directory": "../datasets/YOLOtest/",
     "imgtype": "png",
     "shape": [1024, 1280],
     "noise": 0.05,
     "nframes_train": 10000,
     "nframes_test": 1000,
-    "nframes_eval": 1000,
-    "overwrite": false,
+    "nframes_eval": 10,
     "delete_files_after_training": true
 }
