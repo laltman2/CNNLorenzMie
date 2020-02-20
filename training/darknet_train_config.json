@@ -18,8 +18,8 @@
 	"batch": 64,
 	"subdivisions": 32,
 	"tiny": false,
-	"weightsfile": "../../cfg_darknet/fromscratch/darknet53.conv.74",
-	"savefile": "../../cfg_darknet/bubble_classify"
+	"weightsfile": "../cfg_darknet/fromscratch/darknet53.conv.74",
+	"savefile": "../cfg_darknet/bubble_classify"
     },
     "directory": "../../datasets/YOLO_classify",
     "imgtype": "png",
