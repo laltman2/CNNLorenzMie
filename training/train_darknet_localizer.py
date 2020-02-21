@@ -1,5 +1,5 @@
 from __future__ import print_function
-import json, shutil, os, cv2
+import json, shutil, os, cv2, glob, re
 import numpy as np
 from CNNLorenzMie.training.YOLO_data_generator import makedata
 try:
@@ -113,8 +113,21 @@ with open(save_json, 'w') as f:
     json.dump(config, f)
 print('Saved training config')
 
-#Train
 weightsfile = os.path.abspath(config['training']['weightsfile'])
+
+#if continue is toggled, find all weights files that are already generated in backup folder
+#use the latest one
+if config['continue']:
+    savename = save_header.split('/')[-1]
+    already_weights = glob.glob('{}/{}*'.format(backup_dir, savename))
+    if len(already_weights) != 0:
+        strepochs = [re.findall(r'\d+', s) for s in already_weights]
+        epochs = [int(x[-1]) for x in strepochs if len(x) > 0]
+        maxepochs = max(epochs)
+        weightsfile = [x for x in already_weights if str(maxepochs) in x][0]
+
+        
+#Train
 cmd = '{}/darknet/darknet detector train {} {} {}'.format(basedir, datafile, cfgfile, weightsfile)
 os.system(cmd)
 

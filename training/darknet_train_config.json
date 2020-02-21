@@ -29,5 +29,6 @@
     "nframes_test": 1000,
     "nframes_eval": 1000,
     "overwrite": false,
-    "delete_files_after_training": true
+    "continue": true,
+    "delete_files_after_training": false
 }
