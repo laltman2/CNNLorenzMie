@@ -67,9 +67,11 @@ def make_value(range, decimals=3):
         value = range
     elif isinstance(range[0], list): #multiple ranges (ie excluded region(s))
         values = []
+        p=[]
         for localrange in range:
             values.append(np.random.uniform(localrange[0], localrange[1]))
-        value = np.random.choice(values, 1)[0]
+            p.append(localrange[1] - localrange[0])
+        value = np.random.choice(values, size=1,p=p)[0]
     elif range[0] == range[1]:
         value = range[0]
     else:
