@@ -1,7 +1,7 @@
 import numpy as np
-import keras
+import tensorflow.keras as keras
 import warnings
-from keras import backend as K
+from tensorflow.keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument, coordinates
 from CNNLorenzMie.Estimator import Estimator
 from CNNLorenzMie.Localizer import Localizer

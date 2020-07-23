@@ -1,8 +1,8 @@
 import sys
 sys.path.append('/home/group/python/')
 import numpy as np
-import keras
-from keras import backend as K
+import tensorflow.keras as keras
+from tensorflow.keras import backend as K
 from pylorenzmie.theory.Instrument import Instrument
 import tensorflow as tf
 
@@ -69,7 +69,7 @@ class Estimator(object):
         
         ###################################
         # TensorFlow wizardry
-        config = tf.ConfigProto()
+        config = tf.compat.v1.ConfigProto()
         
         # Don't pre-allocate memory; allocate as-needed
         config.gpu_options.allow_growth = True
@@ -78,7 +78,7 @@ class Estimator(object):
         config.gpu_options.per_process_gpu_memory_fraction = 0.5
  
         # Create a session with the above options specified.
-        K.tensorflow_backend.set_session(tf.Session(config=config))
+        tf.compat.v1.keras.backend.set_session(tf.compat.v1.Session(config=config))
         ###################################
         self.params_range = {}
         if instrument is None:

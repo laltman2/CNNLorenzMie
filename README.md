@@ -51,11 +51,11 @@ Localization and estimation of Lorenz-Mie holograms of colloidal spheres using c
 		[(b'HOLO', 0.599381685256958, (943.1991577148438, 703.5460205078125, 153.0026092529297, 148.02035522460938)), 		      (b'HOLO', 0.5468334555625916, (331.77569580078125, 478.1768798828125, 94.87818908691406, 94.1760482788086))]
 
    
-7. Install [keras](https://keras.io/#installation) and [tensorflow](https://www.tensorflow.org/install). Keras backend with default settings should work fine.
+7. Install [tensorflow v2.2](https://www.tensorflow.org/install). Keras will be included in the tensorflow installation.
 
 8. Test if keras works. In terminal:
 
-	`CNNLorenzMie$ python Estimator.py`
+	`CNNLorenzMie$ python3 Estimator.py`
 	
    If everything installed properly, you should see a whole bunch of output, with this at the end:
    
