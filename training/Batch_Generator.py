@@ -20,6 +20,52 @@ def format_json(sample, config, scale=1):
         annotation.append(savestr)
     return json.dumps(annotation, indent=4)
 
+def scale_int(s, config):
+    shape = config['shape']
+    ext = feature_extent(s, config)
+    #introduce 1% noise to ext
+    ext = np.random.normal(ext, 0.01*ext)
+    extsize = ext*2
+    shapesize = shape[0]
+    if extsize <= shapesize:
+        scale = 1
+    else:
+        scale = int(np.floor(extsize/shapesize) + 1)
+    newshape = [i * scale for i in shape]
+    holo = LMHologram(coordinates=coordinates(newshape))
+    holo.instrument.properties = config['instrument']
+    # ... calculate hologram
+    frame = np.random.normal(0, config['noise'], newshape)
+    holo.particle = s
+    holo.particle.x_p += (scale-1)*100
+    holo.particle.y_p += (scale-1)*100
+    frame += holo.hologram().reshape(newshape)
+    frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
+    #decimate
+    frame = frame[::scale, ::scale]
+    return frame, scale
+
+def scale_float(s, config):
+    shape = config['shape']
+    ext = feature_extent(s, config)
+    #introduce 1% noise to ext
+    ext = np.random.normal(ext, 0.01*ext)
+    extsize = ext*2
+    shapesize = shape[0]
+    scale = float(extsize)/float(shapesize)
+    newshape = [int(extsize)]*2
+    holo = LMHologram(coordinates=coordinates(newshape))
+    holo.instrument.properties = config['instrument']
+    # ... calculate hologram
+    frame = np.random.normal(0, config['noise'], newshape)
+    holo.particle = s
+    holo.particle.x_p += (scale-1)*100.
+    holo.particle.y_p += (scale-1)*100.
+    frame += holo.hologram().reshape(newshape)
+    frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
+    #reshape
+    frame = cv2.resize(frame, tuple(shape))
+    return frame, scale
 
 def makedata_inner(config, settype='train', nframes=None):
     # create directories and filenames
@@ -52,31 +98,35 @@ def makedata_inner(config, settype='train', nframes=None):
         print(imgname.format(n))
         sample = make_sample(config) # ... get params for particles
         s = sample[0]
-        ext = feature_extent(s, config)
-        #introduce 1% noise to ext
-        ext = np.random.normal(ext, 0.01*ext)
-        extsize = ext*2
-        shapesize = shape[0]
-        if extsize <= shapesize:
-            scale = 1
+#         ext = feature_extent(s, config)
+#         #introduce 1% noise to ext
+#         ext = np.random.normal(ext, 0.01*ext)
+#         extsize = ext*2
+#         shapesize = shape[0]
+#         if extsize <= shapesize:
+#             scale = 1
+#         else:
+#             scale = int(np.floor(extsize/shapesize) + 1)
+#         newshape = [i * scale for i in shape]
+#         holo = LMHologram(coordinates=coordinates(newshape))
+#         holo.instrument.properties = config['instrument']
+#         # ... calculate hologram
+#         frame = np.random.normal(0, config['noise'], newshape)
+#         if len(sample) > 0:
+#             holo.particle = sample[0]
+#             holo.particle.x_p += (scale-1)*100
+#             holo.particle.y_p += (scale-1)*100
+#             frame += holo.hologram().reshape(newshape)
+#         else:
+#             frame += 1.
+#         frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
+#         #decimate
+#         frame = frame[::scale, ::scale]
+        if config['scale_integer']:
+            frame, scale = scale_int(s, config)
         else:
-            scale = int(np.floor(extsize/shapesize) + 1)
-        newshape = [i * scale for i in shape]
-        holo = LMHologram(coordinates=coordinates(newshape))
-        holo.instrument.properties = config['instrument']
-        # ... calculate hologram
-        frame = np.random.normal(0, config['noise'], newshape)
-        if len(sample) > 0:
-            holo.particle = sample[0]
-            holo.particle.x_p += (scale-1)*100
-            holo.particle.y_p += (scale-1)*100
-            frame += holo.hologram().reshape(newshape)
-        else:
-            frame += 1.
-        frame = np.clip(100 * frame, 0, 255).astype(np.uint8)
-        #decimate
-        frame = frame[::scale, ::scale]
-        
+            frame, scale = scale_float(s, config)
+    
         # ... and save the results
         cv2.imwrite(imgname.format(n), frame)
         with open(jsonname.format(n), 'w') as fp:

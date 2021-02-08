@@ -13,17 +13,18 @@
 	"z_p": [50, 600]
     },
     "training": {
-	"epochs": 10000,
+	"epochs": 1000,
 	"batchsize": 64,
-	"savefile": "../keras_models/fully_trained_stamp"
+	"savefile": "../keras_models/dataset_test/train_5k"
     },
-    "directory": "../datasets/fullrange/",
+    "directory": "../datasets/scale_float/",
     "imgtype": "png",
     "shape": [201, 201],
     "noise": 0.05,
-    "train": {"nframes": 200000},
-    "test": {"nframes": 10000},
+    "train": {"nframes": 5000},
+    "test": {"nframes": 1000},
     "eval": {"nframes": 100},
+    "scale_integer": true,
     "overwrite": false,
     "delete_files_after_training": false
 }
