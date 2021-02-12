@@ -120,6 +120,8 @@ class EndtoEnd(object):
                 feature.model.particle.a_p = apop.pop(0)
                 feature.model.particle.n_p = npop.pop(0)
                 feature.model.instrument = self.instrument
+                feature.particle = feature.model.particle
+                feature.coordinates = feature.model.coordinates
                 index += 1
         return out_features
 
@@ -130,14 +132,15 @@ if __name__ == '__main__':
     import json
     from matplotlib import pyplot as plt
 
+    localizer = Localizer(configuration='holo', weights='_100k')
+    
     keras_head_path = 'keras_models/predict_stamp_best'
     keras_model_path = keras_head_path+'.h5'
     keras_config_path = keras_head_path+'.json'
     with open(keras_config_path, 'r') as f:
         kconfig = json.load(f)
     estimator = Estimator(model_path=keras_model_path, config_file=kconfig)
-
-    localizer = Localizer(configuration='holo', weights='_100k')
+    
 
     img_file = 'examples/test_image_large.png'
     img = cv2.imread(img_file)
