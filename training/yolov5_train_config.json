@@ -15,7 +15,7 @@
 	"z_p": [50, 600]
     },
     "training": {
-	"batch": 16,
+	"batch": 8,
 	"epochs": 10,
 	"model_size": "s",
 	"resume": false,
