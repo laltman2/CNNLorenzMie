@@ -98,23 +98,16 @@ if __name__ == '__main__':
     img_file = 'examples/test_image_large.png'
     test_img = cv2.imread(img_file)
     detection = localizer.predict(img_list=[test_img])
-    print(detection)
+    detection = localizer.predict(img_list=[test_img])
+    example = detection[0]
     fig, ax = plt.subplots()
     ax.imshow(test_img, cmap='gray')
-
-    '''
     for feature in example:
-        #(x, y, w, h) = feature['bbox']
-        #conf = feature['conf']
-        #msg = 'Feature at ({0:.1f}, {1:.1f}) with {2:.2f} confidence'
-        #print(msg.format(x, y, conf))
-        #print(w*2, h*2)
-        x1, y1, x2, y2 = feature[:4]
-        print(x1)
-        w = x2 - x1
-        h = y2 - y1
-        test_rect = Rectangle(xy=(x1, y1), width=w, height=h, fill=False, linewidth=3, edgecolor='r')
+        (x, y, w, h) = feature['bbox']
+        conf = feature['conf']
+        msg = 'Feature at ({0:.1f}, {1:.1f}) with {2:.2f} confidence'
+        print(msg.format(x, y, conf))
+        print(w*2, h*2)
+        test_rect = Rectangle(xy=(x - w/2, y - h/2), width=w, height=h, fill=False, linewidth=3, edgecolor='r')
         ax.add_patch(test_rect)
-    fig.savefig('Localizerv5_test.png')
     plt.show()
-    '''
