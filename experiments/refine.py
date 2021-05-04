@@ -22,10 +22,11 @@ for i in range(numimgs):
     localpreds = [x for x in MLpreds if x['framenum']==i]
     #reformat for cropping
     for pred in localpreds:
+        print(pred)
         localxy = {"conf":1}
         x_p = pred['x_p']
         y_p = pred['y_p']
-        ext = pred['shape'][0]
+        ext = pred['shape']
         localxy["bbox"] = [x_p, y_p, ext, ext]
         features,_,_ = crop_feature(img_list = [localim], xy_preds = [[localxy]])
         #instatiates a feature, puts in data, coords, x_p, y_p

@@ -12,7 +12,7 @@ import os, os.path
 vid_path = './videos/your_measurement_vid.avi'
 bkg_path = './videos/your_background_vid.avi'
 
-img_eval = normalize_video(bkg_path, vid_path, save_folder='./norm_images/')
+#img_eval = normalize_video(bkg_path, vid_path, save_folder='./norm_images/')
 
 
 
@@ -39,11 +39,14 @@ for i in range(numimgs):
     localim = cv2.imread(filepath)
     features = e2e.predict(img_list = [localim])[0]
     for feature in features:
-        localdict = feature.serialize(exclude=['data'])
+        localdict = feature.particle.properties
+        shape = int(np.sqrt(feature.coordinates.shape[1]))
+        localdict['shape'] = shape
         localdict['framenum'] = i
         localdict['framepath'] = os.path.abspath(filepath)
+        print(localdict)
         savedict.append(localdict)
-    print('Completed frame {}'.format(i), end='\r')
+    #print('Completed frame {}'.format(i), end='\r')
 
 with open('your_MLpreds.json', 'w') as f:
     json.dump(savedict, f)
