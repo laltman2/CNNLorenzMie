@@ -96,7 +96,7 @@ def crop_feature(img_list=[], xy_preds=[],
             data = np.array(data)/100.
             f.data = data
             coords = coordinates(shape=ext_shape, corner=corner)
-            f.model.coordinates = coords
+            f.coordinates = coords
             f.model.particle.x_p = x
             f.model.particle.y_p = y
             feature_list.append(f)
