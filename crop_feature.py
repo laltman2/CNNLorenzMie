@@ -1,7 +1,7 @@
 import numpy as np
 from pylorenzmie.analysis import Feature
 from pylorenzmie.theory import LMHologram
-from pylorenzmie.theory import coordinates
+from pylorenzmie.utilities import coordinates
 
 
 def crop_center(img_local, center, cropshape):
