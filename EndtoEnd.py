@@ -2,7 +2,8 @@ import numpy as np
 import tensorflow.keras as keras
 import warnings
 from tensorflow.keras import backend as K
-from pylorenzmie.theory.Instrument import Instrument, coordinates
+from pylorenzmie.theory.Instrument import Instrument
+from pylorenzmie.utilities import coordinates
 from CNNLorenzMie.Estimator import Estimator
 from CNNLorenzMie.Localizer import Localizer
 from CNNLorenzMie.crop_feature import crop_feature
@@ -120,8 +121,8 @@ class EndtoEnd(object):
                 feature.model.particle.a_p = apop.pop(0)
                 feature.model.particle.n_p = npop.pop(0)
                 feature.model.instrument = self.instrument
-                feature.particle = feature.model.particle
-                feature.coordinates = feature.model.coordinates
+                #feature.particle = feature.model.particle
+                #feature.coordinates = feature.model.coordinates
                 index += 1
         return out_features
 
@@ -156,7 +157,7 @@ if __name__ == '__main__':
     pix = (px, px)
     cpix = estimator.pixels
 
-    h = example.model.hologram()
+    h = example.hologram()
     fig, (ax1, ax2) = plt.subplots(1, 2)
     ax1.imshow(example.data.reshape(pix), cmap='gray')
     ax2.imshow(h.reshape(pix), cmap='gray')
@@ -166,7 +167,7 @@ if __name__ == '__main__':
     result = example.optimize()
     print(result)
     print(example.model.particle)
-    h = example.model.hologram()
+    h = example.hologram()
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     ax1.imshow(example.data.reshape(pix), cmap='gray')
     ax2.imshow(h.reshape(pix), cmap='gray')
