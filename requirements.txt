@@ -24,6 +24,6 @@ opencv-python==4.0.0.21
 pickleshare==0.7.5
 scipy==1.2.1
 tensorboard==1.13.1
-tensorflow==1.13.1
+tensorflow==2.7.2
 tensorflow-estimator==1.13.0
 wurlitzer==1.0.2
