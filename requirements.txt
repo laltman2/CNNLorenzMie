@@ -19,7 +19,7 @@ nb-conda-kernels==2.2.0
 nbconvert==5.4.1
 nbformat==4.4.0
 notebook==5.7.8
-numpy==1.16.2
+numpy==1.22.0
 opencv-python==4.0.0.21
 pickleshare==0.7.5
 scipy==1.2.1
